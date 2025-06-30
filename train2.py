@@ -123,7 +123,13 @@ def main(resume_training, model_path, epochs):
             print("Memoria GPU growth abilitata")
         except RuntimeError as e:
             print(e)
-  
+
+    from tensorflow.python.client import device_lib
+    devices = device_lib.list_local_devices()
+    for d in devices:
+        if d.device_type == 'GPU':
+            print(f"🧠 GPU trovata: {d.name}, Limite memoria: {d.memory_limit / (1024 ** 3):.2f} GB")
+    
     train_model(resume_training, model_path, epochs)
 
 
