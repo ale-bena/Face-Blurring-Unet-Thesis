@@ -14,7 +14,7 @@ def process_image(image, faceDetector):
   detectionResults = faceDetector.detectFaces(image)
 
   for box in detectionResults.boxes:
-    # Converti le coordinate normalizzate in pixel
+    # Convert the normalized coordinates in pixel
       x1 = int(box[0] * image.shape[1])
       y1 = int(box[1] * image.shape[0])
       x2 = int(box[2] * image.shape[1])
@@ -35,10 +35,10 @@ def process_image(image, faceDetector):
 
 
 def rename(folder, prefix="img"):
-    # Elenco di tutti i file .jpg (case-insensitive)
+    # List all the .jpg files
     jpg_files = [f for f in os.listdir(folder) if f.lower().endswith(".jpg")]
     
-    # Ordina alfabeticamente (o cambia criterio se vuoi ordine per data)
+    # Sorts in alphabetical order
     #jpg_files.sort()
 
     for i, filename in enumerate(jpg_files, start=1):
@@ -46,7 +46,6 @@ def rename(folder, prefix="img"):
         old_path = os.path.join(folder, filename)
         new_path = os.path.join(folder, new_name)
 
-        # Se il nuovo nome esiste già, lo salta o lo gestisce (qui: sovrascrive)
         os.rename(old_path, new_path)
         # print(f"renamed: {filename} -> {new_name}")
 
@@ -59,7 +58,6 @@ def main(input_dir, output_dir, model_type, score_threshold, iou_threshold):
     # Initialize face detector
     faceDetector = blazeFaceDetector(model_type, score_threshold, iou_threshold)
 
-    # Itera su tutti i file nella cartella
     for filename in os.listdir(input_dir):
         if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
             input_path = os.path.join(input_dir, filename)
