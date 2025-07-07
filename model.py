@@ -1,42 +1,38 @@
 import tensorflow as tf
-from tensorflow.keras import layers, models
+from tensorflow.keras import layers, Model
 
 def conv_block(x, filters):
-    x = layers.Conv2D(filters, 3, padding='same')(x)
-    x = layers.BatchNormalization()(x)
-    x = layers.Activation('relu')(x)
+    x = layers.Conv2D(filters, 3, padding='same', activation='relu')(x)
+    x = layers.Conv2D(filters, 3, padding='same', activation='relu')(x)
     return x
 
-def build_blur_unet(input_shape=(256, 256, 3)):
-    inputs = tf.keras.Input(shape=input_shape)
+def encoder_block(x, filters):
+    c = conv_block(x, filters)
+    p = layers.MaxPooling2D((2, 2))(c)
+    return c, p
+
+def decoder_block(x, skip, filters):
+    x = layers.Conv2DTranspose(filters, 2, strides=2, padding='same')(x)
+    x = layers.Concatenate()([x, skip])
+    x = conv_block(x, filters)
+    return x
+
+def build_blur_unet(input_shape=(128, 128, 3)):
+    inputs = layers.Input(input_shape)
 
     # Encoder
-    c1 = conv_block(inputs, 64)
-    p1 = layers.MaxPooling2D((2, 2))(c1)
-
-    c2 = conv_block(p1, 128)
-    p2 = layers.MaxPooling2D((2, 2))(c2)
-
-    c3 = conv_block(p2, 256)
-    p3 = layers.MaxPooling2D((2, 2))(c3)
+    c1, p1 = encoder_block(inputs, 32)
+    c2, p2 = encoder_block(p1, 64)
+    c3, p3 = encoder_block(p2, 128)
 
     # Bottleneck
-    bn = conv_block(p3, 512)
+    bn = conv_block(p3, 256)
 
     # Decoder
-    u1 = layers.UpSampling2D((2, 2))(bn)
-    u1 = layers.Concatenate()([u1, c3])
-    c4 = conv_block(u1, 256)
+    d3 = decoder_block(bn, c3, 128)
+    d2 = decoder_block(d3, c2, 64)
+    d1 = decoder_block(d2, c1, 32)
 
-    u2 = layers.UpSampling2D((2, 2))(c4)
-    u2 = layers.Concatenate()([u2, c2])
-    c5 = conv_block(u2, 128)
+    outputs = layers.Conv2D(3, (1, 1), activation='sigmoid')(d1)
 
-    u3 = layers.UpSampling2D((2, 2))(c5)
-    u3 = layers.Concatenate()([u3, c1])
-    c6 = conv_block(u3, 64)
-
-    outputs = layers.Conv2D(3, 1, activation='sigmoid')(c6)
-
-    model = models.Model(inputs=inputs, outputs=outputs)
-    return model
+    return Model(inputs, outputs)
