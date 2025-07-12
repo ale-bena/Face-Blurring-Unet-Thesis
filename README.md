@@ -1,5 +1,4 @@
 <h1 align="center">Face blur project</h1>
-<div align="center">
   
 ## Table of contents
 - [Introduction](#introduction)
