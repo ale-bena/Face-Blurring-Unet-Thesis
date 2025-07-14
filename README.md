@@ -1,4 +1,4 @@
-<h1 align="center">Face blur project</h1>
+<h1 align="center">Face blurring project</h1>
   
 ## Table of contents
 - [Introduction](#introduction)
