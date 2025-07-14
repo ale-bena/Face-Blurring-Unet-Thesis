@@ -2,7 +2,7 @@
   
 ## Table of contents
 - [Introduction](#Introduction)
-- [Dataset structure](#Dataset_structure)
+- [Dataset structure](#Dataset)
 
 # Introduction
 
