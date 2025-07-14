@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--input_dir", required=True, help="Path to the dataset with the original images")
     parser.add_argument("--output_dir", required=True, help="Path to the blurred dataset destination")
-    parser.add_argument("--n_avg", type=int, default=18, help="Number of pixel used in the average for blurring, a greater number means more blurring" )
+    # parser.add_argument("--n_avg", type=int, default=18, help="Number of pixel used in the average for blurring, a greater number means more blurring" )
     parser.add_argument("--score_threshold", type=float, default=0.7, help="score threshold" )
     parser.add_argument("--iou_threshold", type=float, default=0.3, help="iou threshold" )
     parser.add_argument("--model_type", type=str, default="back", help="model type")
