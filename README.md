@@ -1,8 +1,8 @@
 <h1 align="center">Face blurring project</h1>
   
 ## Table of contents
-- [Introduction](#Introduction)
-- [Dataset structure](#Dataset)
+- [Introduction](#introduction)
+- [Dataset structure](#dataset-structure)
 
 # Introduction
 
