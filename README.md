@@ -2,13 +2,13 @@
   
 ## Table of contents
 - [Introduction](#introduction)
-- [Dataset structure](#dataset structure)
+- [Dataset structure](#dataset_structure)
 
 # introduction
 
 2 dataset versions, one with a custom built dataset with roughly 3000 images from celebA-HQ and 2900 from a roboflow dataset; the other one is trained using a partition of the vggFace2 found on kaggle, because the original one was way too big.
 ---
-# dataset structure
+# dataset_structure
 
 ```
 ┣ dataset
