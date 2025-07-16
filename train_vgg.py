@@ -3,7 +3,6 @@ import argparse
 import tensorflow as tf
 from model import build_blur_unet
 
-# Parametri
 IMG_SIZE = (128, 128)
 BATCH_SIZE = 4
 #EPOCHS = 20
@@ -15,6 +14,10 @@ def ssim_metric(y_true, y_pred):
 def psnr_metric(y_true, y_pred):
     return tf.reduce_mean(tf.image.psnr(y_true, y_pred, max_val=1.0))
 
+def combined_loss(y_true, y_pred):
+    mae = tf.reduce_mean(tf.abs(y_true - y_pred))
+    ssim = tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=1.0))
+    return mae + (1.0 - ssim)
 
 def process_path(img_path, tgt_path):
     img = tf.io.read_file(img_path)
@@ -77,6 +80,7 @@ def train_model(resume_training, model_path, epochs):
     model.compile(
         optimizer='adam',
         loss='mae',  #probably changing it for a combined one
+        # loss = combined_loss
         metrics=['mae', ssim_metric, psnr_metric]
     )
 
@@ -114,7 +118,7 @@ def train_model(resume_training, model_path, epochs):
     
     # Save
     model.save("models_vgg/unet1.keras")
-    print("✅ Model saved")
+    print("Model saved")
 
 
 def main(resume_training, model_path, epochs):
