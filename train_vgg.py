@@ -114,7 +114,7 @@ def train_model(resume_training, model_path, epochs):
         validation_steps=validation_steps,
         callbacks=[checkpoint_cb, earlystop_cb, reduce_lr_cb]
     )
-    print("📉 Training completed.")
+    print("Training completed.")
     
     # Save
     model.save("models_vgg/unet1.keras")
