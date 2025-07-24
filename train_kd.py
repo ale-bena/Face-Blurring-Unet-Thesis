@@ -4,7 +4,6 @@ import tensorflow as tf
 from model import build_blur_unet as build_teacher
 from model_lite import build_blur_unet as build_student
 
-# Parametri
 IMG_SIZE = (128, 128)
 BATCH_SIZE = 4
 AUTOTUNE = tf.data.AUTOTUNE
@@ -83,14 +82,14 @@ class Distiller(tf.keras.Model):
         return {m.name: m.result() for m in self.metrics}
 
 def train_model(teacher_model_path, epochs):
-    print("🔍 Loading pretrained Teacher model...")
+    print("Loading pretrained teacher model...")
     teacher = tf.keras.models.load_model(
         teacher_model_path,
         custom_objects={"ssim_metric": ssim_metric, "psnr_metric": psnr_metric}
     )
     teacher.trainable = False
 
-    print("🧠 Building Student model...")
+    print("Building student model...")
     student = build_student()
 
     distiller = Distiller(student=student, teacher=teacher, alpha=0.5)
@@ -103,7 +102,7 @@ def train_model(teacher_model_path, epochs):
         ]
     )
 
-    print("📦 Loading datasets...")
+    print("Loading datasets...")
     train_dataset = load_dataset("./vggface/train", "./vggface/train_blur", max_images=5000)
     val_dataset = load_dataset("./vggface/val", "./vggface/val_blur", max_images=1000)
 
@@ -123,7 +122,7 @@ def train_model(teacher_model_path, epochs):
         )
     ]
 
-    print("🚀 Starting Knowledge Distillation training...")
+    print("Starting Knowledge Distillation training...")
     distiller.fit(
         train_dataset,
         validation_data=val_dataset,
@@ -134,10 +133,10 @@ def train_model(teacher_model_path, epochs):
     )
 
     student.save("models_vgg/student_blur_unet.keras")
-    print("✅ Student model saved to models_vgg/student_blur_unet.keras")
+    print("Student model saved to models_vgg/student_blur_unet.keras")
 
 def main(teacher_model_path, epochs):
-    print(f"🎯 Training student with teacher at: {teacher_model_path}")
+    print(f"Training student with teacher at: {teacher_model_path}")
     gpus = tf.config.list_physical_devices('GPU')
     if gpus:
         try:
@@ -151,7 +150,7 @@ def main(teacher_model_path, epochs):
     devices = device_lib.list_local_devices()
     for d in devices:
         if d.device_type == 'GPU':
-            print(f"🖥️  GPU: {d.name}, memory: {d.memory_limit / (1024 ** 3):.2f} GB")
+            print(f"GPU: {d.name}, memory: {d.memory_limit / (1024 ** 3):.2f} GB")
 
     train_model(teacher_model_path, epochs)
 
