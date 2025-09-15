@@ -30,6 +30,7 @@ This repository containes the code and the information from a thesis work about 
 [Back to top](#table-of-contents)
 
 # Graphs
+The graphs in the picture indicates the values for the parameters MSE(loss) and MAE for the teacher model. The comparison is between the training values and the ones calculated during the validation phase, which are more true to tell the capacity of the model and suffer less of overfitting. As can be seen the training line continues to decrease, but the validation line converges earlier. This indicates that the model has reached it's maximum performance and will probably start to overfit if the training goes on too much. The only way to improve the performance is by applying structural modifications to the model, the dataset, or applying more specifical parameters.
 <img src="images/MSE%20vs%20val_mse.png" alt="MSE training vs validation values for teacher model" width="400">
 <img src="images/MAE%20and%20val_MAE.png" alt="MSE training vs validation values for teacher model" width="400">
 
