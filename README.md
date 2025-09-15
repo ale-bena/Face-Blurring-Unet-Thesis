@@ -30,6 +30,6 @@ This repository containes the code and the information from a thesis work about 
 [Back to top](#table-of-contents)
 
 # Graphs
-![Testo alternativo](images/MAE vs val_MAE.png)
+![Testo alternativo](images/MAE and val_MAE.png)
 
 ---
