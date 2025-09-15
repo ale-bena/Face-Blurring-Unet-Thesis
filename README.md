@@ -31,6 +31,7 @@ This repository containes the code and the information from a thesis work about 
 
 # Graphs
 <img src="images/MSE%20vs%20val_mse.png" alt="MSE training vs validation values for teacher model" width="400">
-![Testo alternativo](images/MAE%20and%20val_MAE.png)
+<img src="images/MAE%20and%20val_MAE.png" alt="MSE training vs validation values for teacher model" width="400">
+
 
 ---
