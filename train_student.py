@@ -195,11 +195,14 @@ def main(args):
             except RuntimeError as e:
                 print(e)
 
-    from tensorflow.python.client import device_lib
-    devices = device_lib.list_local_devices()
-    for d in devices:
-        if d.device_type == 'GPU':
-            print(f"GPU: {d.name}, memory: {d.memory_limit / (1024 ** 3):.2f} GB")
+    gpus = tf.config.list_physical_devices('GPU')
+    for i, gpu in enumerate(gpus):
+        try:
+            memory_info = tf.config.experimental.get_memory_info(f'GPU:{i}')
+            total_memory = memory_info['peak'] / (1024**3)
+            print(f"GPU {i}: {gpu.name}, peak memory: {total_memory:.2f} GB")
+        except:
+            print(f"GPU {i}: {gpu.name}")
 
     train_model(
         teacher_model_path=args.teacher_model_path,
