@@ -5,8 +5,6 @@ from model_teacher import build_blur_unet
 from tensorflow.keras.utils import register_keras_serializable
 from tensorflow.keras.models import Model
 
-
-# Default Parameters
 DEFAULT_IMG_SIZE = (128, 128)
 DEFAULT_BATCH_SIZE = 32
 AUTOTUNE = tf.data.AUTOTUNE
@@ -32,21 +30,24 @@ def process_path(img_path, tgt_path, img_size):
 
     return img, tgt
 
-
 def load_dataset(image_dir, target_dir, img_size, batch_size, max_images=None):
-    image_files = tf.data.Dataset.list_files(os.path.join(image_dir, "*.jpg"), shuffle=False)
-    target_files = tf.data.Dataset.list_files(os.path.join(target_dir, "*.jpg"), shuffle=False)
+    image_files = sorted([os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith(".jpg")])
+    target_files = sorted([os.path.join(target_dir, f) for f in os.listdir(target_dir) if f.endswith(".jpg")])
 
     if max_images is not None:
-        image_files = image_files.take(max_images)
-        target_files = target_files.take(max_images)
+        image_files = image_files[:max_images]
+        target_files = target_files[:max_images]
 
-    dataset = tf.data.Dataset.zip((image_files, target_files))
-    dataset = dataset.map(lambda x, y: process_path(x, y, img_size), num_parallel_calls=AUTOTUNE)
-    
-    dataset = dataset.repeat()
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.prefetch(buffer_size=AUTOTUNE)
+    image_ds = tf.data.Dataset.from_tensor_slices(image_files)
+    target_ds = tf.data.Dataset.from_tensor_slices(target_files)
+
+    dataset = tf.data.Dataset.zip((image_ds, target_ds))
+    dataset = dataset.map(
+        lambda x, y: process_path(x, y, img_size),
+        num_parallel_calls=AUTOTUNE,
+        deterministic=True
+    )
+    dataset = dataset.batch(batch_size).prefetch(AUTOTUNE)
     return dataset
 
 def train_model(resume_training, model_path, epochs, img_size, batch_size,
@@ -69,15 +70,11 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
     steps_per_epoch = max_train_images // batch_size
     validation_steps = max_val_images // batch_size
 
-    # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Build full paths
     best_model_path = os.path.join(output_dir, best_model_name)
     final_model_path = os.path.join(output_dir, final_model_name)
     csv_log_path = os.path.join(output_dir, csv_log_name)
 
-    # Callbacks
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
         best_model_path, save_best_only=True, monitor="val_loss", mode="min"
     )
@@ -90,7 +87,6 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
     csv_logger = tf.keras.callbacks.CSVLogger(csv_log_path, append=True)
 
     print("Starting Teacher training...")
-    # Training
     history = model.fit(
         train_dataset,
         validation_data=validation_dataset,
@@ -105,7 +101,6 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
     else:
         print("Training completed.")
     
-    # Save
     model.save(final_model_path)
     print(f"Teacher model saved to {final_model_path}")
     print(f"Best model saved to {best_model_path}")
@@ -115,7 +110,6 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
 def main(args):
     print(f"Starting Teacher training with {args.epochs} epochs")
     
-    # GPU configuration
     if args.gpu_growth:
         gpus = tf.config.list_physical_devices('GPU')
         if gpus:
@@ -203,3 +197,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args)
+
