@@ -2,10 +2,9 @@ import os
 import argparse
 import tensorflow as tf
 from tensorflow.keras.saving import register_keras_serializable
-from model_teacher import build_blur_unet as build_teacher  # put model teacher file name here
-from model_student import build_blur_unet as build_student # put model student file name here
+from model_teacher import build_blur_unet as build_teacher 
+from model_student import build_blur_unet as build_student
 
-# Default Parameters
 DEFAULT_IMG_SIZE = (128, 128) 
 DEFAULT_BATCH_SIZE = 32
 AUTOTUNE = tf.data.AUTOTUNE
@@ -281,4 +280,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args)
+
 
