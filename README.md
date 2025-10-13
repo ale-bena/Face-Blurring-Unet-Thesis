@@ -8,10 +8,11 @@
 - [Training](#training)
 
 # Introduction
-
+```
 This repository containes the code and the information from a thesis work about face blurring. The aim is to provide a comparison between two differen ways to blur faces: one is using pretrained face detection models and implementing a post processing face blurring function that blur the pixel inside the output bounding box and the other way is a pipeline approach, using a unet that learns to blur the faces directly. The second approach is more kean to errors and less precise, but is useful to see how a structure such as a unet can be reduced to fit on an embedded device, which is the main focus of the reserch.
 2 dataset versions, one with a custom built dataset with roughly 3000 images from celebA-HQ and 2900 from a roboflow dataset; the other one is trained using a partition of the vggFace2 found on kaggle, because the original one was way too big.
----
+```
+
 # Dataset structure
 
 ```
@@ -29,12 +30,18 @@ This repository containes the code and the information from a thesis work about 
 ┃ ┃ ┣ 00001.jpg
 ┃ ┃ ┣ ...
 ```
-The dataset is organized in three different type of folders: training, validation and testing. The dataset has a total number of 13000 images which are splitted 80% for training, 20% for validation and the remaining 10% is dedicated to testing. The 80% of the images of the dataset comes from the VVGFace2 (256x256 version) LINK!!!, this has been done to be coherent to an inspiring research, XimSwap(BIB). These images have a high quality, the face is frontal, visible and has a big dimension(???).
-For simplicity reasons all the images contain only one face, so the model might not work well when multiple faces are present in the input image.
-For each step there are 3 folders: one with the original images, one with the blurred faces and one with the face masks for the metrics. 
+The dataset is organized in two different types of folders: training and validation. The total number of images of the dataset is 12000 and they are then divided 80% for training(9600), and 20% for validation. 
+FIRST: the images come from a cropped verison(256x256) of the VGGFace2 dataset found on kaggle:
+This has been done to be coherent to an inspiring research which used the VGGFace2 dataset, XimSwap[].
+The images in the dataset ocntain mostly one face and are for the major part frontal face images where the image usually big.
+SECOND: handmade dataset...
+To produce the structure above the images have been divided into train and val folder and then with the help of a face detector blurring has been performed on them to generate train_blur and val_blur. Two different have been used:
+-Blazeface Lite (only inference) --> github repo link:
+-Mediapipe official implementation
+Both implementation seem to perform weel but they still miss some faces, especially on images where the face is too big, when it is only half face or when there are multiple faces and some of them are small or low resolution.
+That said the mediapipe implementation has been chosen since it is an official implementation, even if the blocks of the architecture should be very similar between the two models.
 
-Comment on dataset:
-The fact that the major part of the images are frontal and the faces are quite big can lead to overfitting and especially when using an image-to-image learning technique, if the model blurs always near the center part of the image it might blur that region even when the face appears on the side. It also might misunderstand objects in the central region with faces and blur them.
+
  
 
 [Back to top](#table-of-contents)
@@ -44,7 +51,9 @@ The fact that the major part of the images are frontal and the faces are quite b
 The model architecture is based on a simple unet structure, which is a convolutial network with a downsample(encoder) and an upsample(decoder) path. This type of path is common in image reconstruction or detection tasks.
 In specific the architecture od the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
 (To provide more generalization batch normalization has been added to each layer an also a dropout has been added to the deepest layer of the encoder(0,05) and to the bottleneck(0,2).)
-Model: "functional"
+
+The resultin models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. Both of the models have 3 layers as said before, the different stand in the size of the filters, which is hald in the smaller model.
+Teacher model:
 ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
 ┃ Layer (type)        ┃ Output Shape      ┃    Param # ┃ Connected to      ┃
 ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
@@ -126,14 +135,21 @@ Model: "functional"
  Total params: 1,925,667 (7.35 MB)
  Trainable params: 1,925,667 (7.35 MB)
  Non-trainable params: 0 (0.00 B)
-[Back to top](#table-of-contents)
+
+
 ```
+[Back to top](#table-of-contents)
 # Training 
 ```
+Training was performed using Google colab. The file for the teacher model training is train_teacher.py, while the one for the student training is train_student.py .
+It is possible to use the pretrained models for inference(tflite versions) or even to perform retraining, following train.ipynb directly on colab. To perform retraining there is the need to pull this directory and download the dataset.
+
 ```
+[Back to top](#table-of-contents)
 # Graphs
 ```
-The graphs in the picture indicates the values for the parameters MSE(loss) and MAE for the teacher model. The comparison is between the training values and the ones calculated during the validation phase, which are more true to tell the capacity of the model and suffer less of overfitting. As can be seen the training line continues to decrease, but the validation line converges earlier. This indicates that the model has reached it's maximum performance and will probably start to overfit if the training goes on too much. The only way to improve the performance is by applying structural modifications to the model, the dataset, or applying more specifical parameters.
+In this section training graphs of the loss will be shown. The loss used is MSE and the other parameters are MAE, SSIM and PSNR. The 2 lines indicates the the training phase and the validation phase.
+
 
 ```
 
