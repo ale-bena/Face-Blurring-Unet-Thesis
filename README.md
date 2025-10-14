@@ -6,13 +6,15 @@
 - [Graphs](#graphs)
 - [Model architecture](#model-architecture)
 - [Training](#training)
+- [Performance](#performance-assesment)
 
 # Introduction
 This repository containes the code and the information from a thesis work about face blurring.
 The goal is to develop a working face blurring model using a generative approach, based on an encoder-decoder architecture. To do that hardware limitation of embedded devices have to be considered, so the aim is to develop a model with a final size of less than 1MB and verify the inference time on a board using a board simulator to see wheter it can be fitted on a TinyML device or not and the inference time to asses if it can perform real-time inference.
 
 # Dataset structure
-
+The training dataset is composed of four different folders and is organized in two different types of folders: training and validation. The total number of images of the dataset is 12000 and they are then divided 80% for training(9600), and 20% for validation. 
+Another important point is the format of the image, which is .jpg. This format is a lossy format but has the advantage of being light and so less expensive to load and process, which is important if training with time limitation and limited resources can be a considerable gain.
 ```
 ┣ dataset
 ┃ ┣ train
@@ -28,7 +30,6 @@ The goal is to develop a working face blurring model using a generative approach
 ┃ ┃ ┣ 00001.jpg
 ┃ ┃ ┣ ...
 ```
-The dataset is organized in two different types of folders: training and validation. The total number of images of the dataset is 12000 and they are then divided 80% for training(9600), and 20% for validation. 
 FIRST: the images come from a cropped verison(256x256) of the VGGFace2 dataset found on kaggle:
 This has been done to be coherent to an inspiring research which used the VGGFace2 dataset, XimSwap[].
 The images in the dataset ocntain mostly one face and are for the major part frontal face images where the image usually big.
@@ -41,8 +42,10 @@ To produce the structure above the images have been divided into train and val f
 Both implementation seem to perform weel but they still miss some faces, especially on images where the face is too big, when it is only half face or when there are multiple faces and some of them are small or low resolution.
 That said the mediapipe implementation has been chosen since it is an official implementation, even if the blocks of the architecture should be very similar between the two models.
 
+For further improvements a recommendation is to use a labeled dataset where there is an annotation file containing the boxes of the faces. It will be even better if the label are ellipses instead of boxes or if they can be converted to them with some processing. This last improvement will bring to a more clean and precise result, but for the scope of this research, and for time constraints, this type of process and dataset has been chosen.
 
 [Back to top](#table-of-contents)
+
 # Model architecture
 The model architecture is based on a simple unet structure, which is a convolutial network with a downsample(encoder) and an upsample(decoder) path. This type of path is common in image reconstruction or detection tasks.
 In specific the architecture od the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
@@ -137,6 +140,7 @@ Teacher model:
 # Training 
 Training was performed using Google colab. The file for the teacher model training is train_teacher.py, while the one for the student training is train_student.py .
 It is possible to use the pretrained models for inference(tflite versions) or even to perform retraining, following train.ipynb directly on colab. To perform retraining there is the need to pull this directory and download the dataset.
+Training notebook is available [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing)
 
 [Back to top](#table-of-contents)
 # Graphs
@@ -152,5 +156,7 @@ These datasets are the following, and most of them have already been used in the
 - WIDER Faces: very diversified an big dataset, it contains images with a lot of small faces and images with bigger ones.
 
 Testsets are not genereted randomly, images have been selected with the purpose to understand and asses the performance of the model in different scenarios. For the purspose of this project images with a very high number of faces, and images where the dimension of them is too small, have been avoided. Since the dataset used for training doesnt't contain none of them, the performance on this kind of images is expected to be bad and goes out of the scope of the project, which doesn't aim for a perfect performance on every type of image since the model has a small amount of parameters and a limited training dataset.
+
+[Back to top](#table-of-contents)
 
 ---
