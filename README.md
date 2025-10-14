@@ -34,7 +34,7 @@ This has been done to be coherent to an inspiring research which used the VGGFac
 The images in the dataset ocntain mostly one face and are for the major part frontal face images where the image usually big.
 SECOND: handmade dataset...
 To produce the structure above the images have been divided into train and val folder and then with the help of a face detector blurring has been performed on them to generate train_blur and val_blur. Two different have been used:
--Blazeface Lite (only inference) --> github repo link:
+-[BlazeFace-TFLite-Inference](https://github.com/ibaiGorordo/BlazeFace-TFLite-Inference)
 -Mediapipe official implementation
 Both implementation seem to perform weel but they still miss some faces, especially on images where the face is too big, when it is only half face or when there are multiple faces and some of them are small or low resolution.
 That said the mediapipe implementation has been chosen since it is an official implementation, even if the blocks of the architecture should be very similar between the two models.
@@ -46,7 +46,7 @@ The model architecture is based on a simple unet structure, which is a convoluti
 In specific the architecture od the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
 (To provide more generalization batch normalization has been added to each layer an also a dropout has been added to the deepest layer of the encoder(0,05) and to the bottleneck(0,2).)
 
-The resultin models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. Both of the models have 3 layers as said before, the different stand in the size of the filters, which is hald in the smaller model.
+The resulting models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. Both of the models have 3 layers as said before, the different stand in the size of the filters, which is hald in the smaller model.
 ```
 Teacher model:
 ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
@@ -148,6 +148,7 @@ These datasets are the following, and most of them have already been used in the
 - Celeba-HQ: has more centered and aligned images with bigger faces
 - FDDB: as for the one in the training, a derivation of this dataset has been used since the official site is not working at the moment. Like VGGFace2 it has multiple faces and different dimensions
 - WIDER Faces: very diversified an big dataset, it contains images with a lot of small faces and images with bigger ones.
+
 Testsets are not genereted randomly, images have been selected with the purpose to understand and asses the performance of the model in different scenarios. For the purspose of this project images with a very high number of faces, and images where the dimension of them is too small, have been avoided. Since the dataset used for training doesnt't contain none of them, the performance on this kind of images is expected to be bad and goes out of the scope of the project, which doesn't aim for a perfect performance on every type of image since the model has a small amount of parameters and a limited training dataset.
 
 ---
