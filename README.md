@@ -8,10 +8,8 @@
 - [Training](#training)
 
 # Introduction
-```
 This repository containes the code and the information from a thesis work about face blurring. The aim is to provide a comparison between two differen ways to blur faces: one is using pretrained face detection models and implementing a post processing face blurring function that blur the pixel inside the output bounding box and the other way is a pipeline approach, using a unet that learns to blur the faces directly. The second approach is more kean to errors and less precise, but is useful to see how a structure such as a unet can be reduced to fit on an embedded device, which is the main focus of the reserch.
 2 dataset versions, one with a custom built dataset with roughly 3000 images from celebA-HQ and 2900 from a roboflow dataset; the other one is trained using a partition of the vggFace2 found on kaggle, because the original one was way too big.
-```
 
 # Dataset structure
 
@@ -42,17 +40,15 @@ Both implementation seem to perform weel but they still miss some faces, especia
 That said the mediapipe implementation has been chosen since it is an official implementation, even if the blocks of the architecture should be very similar between the two models.
 
 
- 
-
 [Back to top](#table-of-contents)
-
+---
 # Model architecture
-```
 The model architecture is based on a simple unet structure, which is a convolutial network with a downsample(encoder) and an upsample(decoder) path. This type of path is common in image reconstruction or detection tasks.
 In specific the architecture od the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
 (To provide more generalization batch normalization has been added to each layer an also a dropout has been added to the deepest layer of the encoder(0,05) and to the bottleneck(0,2).)
 
 The resultin models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. Both of the models have 3 layers as said before, the different stand in the size of the filters, which is hald in the smaller model.
+```
 Teacher model:
 ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
 ┃ Layer (type)        ┃ Output Shape      ┃    Param # ┃ Connected to      ┃
@@ -135,25 +131,19 @@ Teacher model:
  Total params: 1,925,667 (7.35 MB)
  Trainable params: 1,925,667 (7.35 MB)
  Non-trainable params: 0 (0.00 B)
-
-
 ```
+---
 [Back to top](#table-of-contents)
 # Training 
-```
 Training was performed using Google colab. The file for the teacher model training is train_teacher.py, while the one for the student training is train_student.py .
 It is possible to use the pretrained models for inference(tflite versions) or even to perform retraining, following train.ipynb directly on colab. To perform retraining there is the need to pull this directory and download the dataset.
 
-```
 [Back to top](#table-of-contents)
 # Graphs
-```
 In this section training graphs of the loss will be shown. The loss used is MSE and the other parameters are MAE, SSIM and PSNR. The 2 lines indicates the the training phase and the validation phase.
 
 
-```
 # Performance assessment
-```
 To understand the performance of the models, different testsets are used. The concept is to use images from different datasets to understand where the model might have difficulties or fails.
 These datasets are the following, and most of them have already been used in the training part:
 - VGGFace2: same characteristics as the majer part of the images used in the training and validation set, has multiple faces images and the size of the faces is various
@@ -162,6 +152,4 @@ These datasets are the following, and most of them have already been used in the
 - WIDER Faces: very diversified an big dataset, it contains images with a lot of small faces and images with bigger ones.
 Testsets are not genereted randomly, images have been selected with the purpose to understand and asses the performance of the model in different scenarios. For the purspose of this project images with a very high number of faces, and images where the dimension of them is too small, have been avoided. Since the dataset used for training doesnt't contain none of them, the performance on this kind of images is expected to be bad and goes out of the scope of the project, which doesn't aim for a perfect performance on every type of image since the model has a small amount of parameters and a limited training dataset.
 
-
-```
 ---
