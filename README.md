@@ -41,7 +41,6 @@ That said the mediapipe implementation has been chosen since it is an official i
 
 
 [Back to top](#table-of-contents)
----
 # Model architecture
 The model architecture is based on a simple unet structure, which is a convolutial network with a downsample(encoder) and an upsample(decoder) path. This type of path is common in image reconstruction or detection tasks.
 In specific the architecture od the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
@@ -132,7 +131,6 @@ Teacher model:
  Trainable params: 1,925,667 (7.35 MB)
  Non-trainable params: 0 (0.00 B)
 ```
----
 [Back to top](#table-of-contents)
 # Training 
 Training was performed using Google colab. The file for the teacher model training is train_teacher.py, while the one for the student training is train_student.py .
