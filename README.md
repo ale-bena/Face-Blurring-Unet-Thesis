@@ -33,9 +33,11 @@ FIRST: the images come from a cropped verison(256x256) of the VGGFace2 dataset f
 This has been done to be coherent to an inspiring research which used the VGGFace2 dataset, XimSwap[].
 The images in the dataset ocntain mostly one face and are for the major part frontal face images where the image usually big.
 SECOND: handmade dataset...
+
 To produce the structure above the images have been divided into train and val folder and then with the help of a face detector blurring has been performed on them to generate train_blur and val_blur. Two different have been used:
--[BlazeFace-TFLite-Inference](https://github.com/ibaiGorordo/BlazeFace-TFLite-Inference)
--Mediapipe official implementation
+- [BlazeFace-TFLite-Inference](https://github.com/ibaiGorordo/BlazeFace-TFLite-Inference)
+- Mediapipe official implementation
+
 Both implementation seem to perform weel but they still miss some faces, especially on images where the face is too big, when it is only half face or when there are multiple faces and some of them are small or low resolution.
 That said the mediapipe implementation has been chosen since it is an official implementation, even if the blocks of the architecture should be very similar between the two models.
 
