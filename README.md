@@ -139,8 +139,12 @@ Teacher model:
 [Back to top](#table-of-contents)
 # Training 
 Training was performed using Google colab. The file for the teacher model training is train_teacher.py, while the one for the student training is train_student.py .
-It is possible to use the pretrained models for inference(tflite versions) or even to perform retraining, following train.ipynb directly on colab. To perform retraining there is the need to pull this directory and download the dataset.
-Training notebook is available [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing)
+It is possible to use the pretrained models for inference(tflite versions) or even to perform retraining from scratch or fine tuning. To do this there is the training notebook available: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing)
+
+To perform retraining there is the need to pull this directory and download the dataset. Then there is the possibility to train the teacher fiste, and then the student and perform a single image test or a complete test using one of the testsets available.
+
+To try only the inference part, the .tflite models in the different models folders in this repository can be used. Instructions are inside the following script: 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing) (link needs to be changed)
 
 [Back to top](#table-of-contents)
 # Graphs
