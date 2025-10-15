@@ -10,7 +10,7 @@
 - [Future works and possible developments](#future-works-and-possible-developments)
 
 # Introduction
-This repository containes the code and the information from a thesis work about face blurring.
+This repository contains the code and the information from a thesis work about face blurring.
 The goal is to develop a working face blurring model using a generative approach, based on an encoder-decoder architecture. To do that hardware limitation of embedded devices have to be considered, so the aim is to develop a model with a final size of less than 1MB and verify the inference time on a board using a board simulator to see wheter it can be fitted on a TinyML device or not and the inference time to asses if it can perform real-time inference.
 
 # Dataset structure
@@ -170,7 +170,7 @@ These datasets are the following, and most of them have already been used in the
 - FDDB: as for the one in the training, a derivation of this dataset has been used since the official site is not working at the moment. Like VGGFace2 it has multiple faces and different dimensions
 - WIDER Faces: very diversified an big dataset, it contains images with a lot of small faces and images with bigger ones.
 
-Testsets are not genereted randomly, images have been selected with the purpose to understand and asses the performance of the model in different scenarios. For the purspose of this project images with a very high number of faces, and images where the dimension of them is too small, have been avoided. Since the dataset used for training doesnt't contain none of them, the performance on this kind of images is expected to be bad and goes out of the scope of the project, which doesn't aim for a perfect performance on every type of image since the model has a small amount of parameters and a limited training dataset.
+Testsets are not genereted randomly, images have been selected with the purpose to understand and asses the performance of the model in different scenarios. For the purspose of this project images with a very high number of faces, and images where the dimension of them is too small, have been avoided. Since the dataset used for training doesn't contain none of them, the performance on this kind of images is expected to be bad and goes out of the scope of the project, which doesn't aim for a perfect performance on every type of image since the model has a small amount of parameters and a limited training dataset.
 
 [Back to top](#table-of-contents)
 
