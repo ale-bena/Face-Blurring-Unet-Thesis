@@ -4,6 +4,8 @@ import tensorflow as tf
 from tensorflow.keras.saving import register_keras_serializable
 from model_teacher import build_blur_unet as build_teacher 
 from model_student import build_blur_unet as build_student
+from tensorflow.keras.callbacks import TensorBoard
+import datetime
 
 DEFAULT_IMG_SIZE = (128, 128) 
 DEFAULT_BATCH_SIZE = 32
@@ -19,12 +21,12 @@ def psnr_metric(y_true, y_pred):
 
 def process_path(img_path, tgt_path, img_size):
     img = tf.io.read_file(img_path)
-    img = tf.image.decode_png(img, channels=3)
+    img = tf.image.decode_jpeg(img, channels=3)
     img = tf.image.resize(img, img_size)
     img = tf.cast(img, tf.float32) / 255.0
 
     tgt = tf.io.read_file(tgt_path)
-    tgt = tf.image.decode_png(tgt, channels=3)
+    tgt = tf.image.decode_jpeg(tgt, channels=3)
     tgt = tf.image.resize(tgt, img_size)
     tgt = tf.cast(tgt, tf.float32) / 255.0
 
@@ -155,27 +157,46 @@ def train_model(teacher_model_path, epochs, img_size, batch_size, alpha, beta,
     final_model_path = os.path.join(output_dir, final_model_name)
     csv_log_path = os.path.join(output_dir, csv_log_name)
 
+    # TensorBoard setup
+    log_dir = os.path.join(output_dir, "logs", "fit", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    os.makedirs(log_dir, exist_ok=True)
+
+    tensorboard_cb = tf.keras.callbacks.TensorBoard(
+        log_dir=log_dir,
+        histogram_freq=0,
+        write_graph=True,     
+        write_images=False,  
+        update_freq='epoch'
+    )
+                    
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
         best_model_path, save_best_only=True, monitor="val_loss", mode="min"
     )
     earlystop_cb = tf.keras.callbacks.EarlyStopping(
-        monitor="val_loss", patience=15, restore_best_weights=True, mode="min", start_from_epoch=18
+        monitor="val_loss", patience=12, restore_best_weights=True, mode="min", start_from_epoch=20
     )
     reduce_lr_cb = tf.keras.callbacks.ReduceLROnPlateau(
-        monitor="val_loss", factor=0.7, patience=8, min_lr=1e-6, verbose=1, mode="min", start_from_epoch=14
+        monitor="val_loss", factor=0.7, patience=6, min_lr=1e-6, verbose=1, mode="min", start_from_epoch=12
     )
     csv_logger = tf.keras.callbacks.CSVLogger(csv_log_path, append=True)
 
-    print("Starting Student training with MSE loss...")
+    print("Starting Student training...")
     history = distiller.fit(
         train_dataset,
         validation_data=val_dataset,
         epochs=epochs,
         steps_per_epoch=steps_per_epoch,
         validation_steps=validation_steps,
-        callbacks=[checkpoint_cb, earlystop_cb, reduce_lr_cb, csv_logger]
+        callbacks=[checkpoint_cb, earlystop_cb, reduce_lr_cb, csv_logger, tensorboard_cb]
     )
+    best_epoch = history.history['val_loss'].index(min(history.history['val_loss'])) + 1
+    best_val_loss = min(history.history['val_loss'])
+    print(f"Best model (lowest val_loss) at epoch {best_epoch} with val_loss = {best_val_loss:.4f}")
 
+    if earlystop_cb.stopped_epoch > 0:
+        print("Early stopping, training ended!")
+    else:
+        print("Training completed.")
     student.save(final_model_path)
     print(f"Student model saved to {final_model_path}")
     print(f"Best model saved to {best_model_path}")
@@ -194,14 +215,11 @@ def main(args):
             except RuntimeError as e:
                 print(e)
 
-    gpus = tf.config.list_physical_devices('GPU')
-    for i, gpu in enumerate(gpus):
-        try:
-            memory_info = tf.config.experimental.get_memory_info(f'GPU:{i}')
-            total_memory = memory_info['peak'] / (1024**3)
-            print(f"GPU {i}: {gpu.name}, peak memory: {total_memory:.2f} GB")
-        except:
-            print(f"GPU {i}: {gpu.name}")
+    from tensorflow.python.client import device_lib
+    devices = device_lib.list_local_devices()
+    for d in devices:
+        if d.device_type == 'GPU':
+            print(f"GPU: {d.name}, memory limit: {d.memory_limit / (1024 ** 3):.2f} GB")
 
     train_model(
         teacher_model_path=args.teacher_model_path,
@@ -280,5 +298,6 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args)
+
 
 
