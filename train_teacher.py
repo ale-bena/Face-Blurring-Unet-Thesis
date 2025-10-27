@@ -1,10 +1,13 @@
 import os
 import argparse
 import tensorflow as tf
-from model_teacher import build_blur_unet
+from model_teacher_4layer import build_blur_unet
 from tensorflow.keras.utils import register_keras_serializable
 from tensorflow.keras.models import Model
+from tensorflow.keras.callbacks import TensorBoard
+import datetime
 
+# Default Parameters
 DEFAULT_IMG_SIZE = (128, 128)
 DEFAULT_BATCH_SIZE = 32
 AUTOTUNE = tf.data.AUTOTUNE
@@ -30,7 +33,7 @@ def process_path(img_path, tgt_path, img_size):
 
     return img, tgt
 
-def load_dataset(image_dir, target_dir, img_size, batch_size, max_images=None):
+def load_dataset(image_dir, target_dir, img_size, batch_size, max_images=None, cache_path=None):
     image_files = sorted([os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith(".jpg")])
     target_files = sorted([os.path.join(target_dir, f) for f in os.listdir(target_dir) if f.endswith(".jpg")])
 
@@ -47,13 +50,21 @@ def load_dataset(image_dir, target_dir, img_size, batch_size, max_images=None):
         num_parallel_calls=AUTOTUNE,
         deterministic=True
     )
+    if cache_path:
+        print(f"Caching dataset to {cache_path}")
+        dataset = dataset.cache(cache_path)
+    else:
+        print("Caching dataset in memory")
+        dataset = dataset.cache()
     dataset = dataset.batch(batch_size).prefetch(AUTOTUNE)
     return dataset
+
 
 def train_model(resume_training, model_path, epochs, img_size, batch_size,
                 train_images_dir, train_targets_dir, val_images_dir, val_targets_dir,
                 max_train_images, max_val_images, output_dir, best_model_name,
                 final_model_name, csv_log_name):
+    
     if resume_training:
         print(f"Loading existing model from {model_path}...")
         model = tf.keras.models.load_model(model_path)
@@ -64,44 +75,73 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
     model.compile(optimizer='adam', loss='mse', metrics=['mae', ssim_metric, psnr_metric])
 
     print("Loading datasets...")
-    train_dataset = load_dataset(train_images_dir, train_targets_dir, img_size, batch_size, max_images=max_train_images)
-    validation_dataset = load_dataset(val_images_dir, val_targets_dir, img_size, batch_size, max_images=max_val_images)
+    train_dataset = load_dataset(train_images_dir, train_targets_dir, img_size, batch_size,
+                                 max_images=max_train_images,
+                                 cache_path="/content/train_cache.tfdata")
+
+    validation_dataset = load_dataset(val_images_dir, val_targets_dir, img_size, batch_size,
+                                      max_images=max_val_images,
+                                      cache_path="/content/val_cache.tfdata")
     
-    steps_per_epoch = max_train_images // batch_size
-    validation_steps = max_val_images // batch_size
+    
+    #train_dataset = load_dataset(train_images_dir, train_targets_dir, img_size, batch_size, max_images=max_train_images)
+    #validation_dataset = load_dataset(val_images_dir, val_targets_dir, img_size, batch_size, max_images=max_val_images)
+
+    #steps_per_epoch = max_train_images // batch_size
+    #validation_steps = max_val_images // batch_size
 
     os.makedirs(output_dir, exist_ok=True)
     best_model_path = os.path.join(output_dir, best_model_name)
     final_model_path = os.path.join(output_dir, final_model_name)
     csv_log_path = os.path.join(output_dir, csv_log_name)
 
+    # TensorBoard setup
+    log_dir = os.path.join(output_dir, "logs", "fit", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"))
+    os.makedirs(log_dir, exist_ok=True)
+
+    tensorboard_cb = tf.keras.callbacks.TensorBoard(
+        log_dir=log_dir,
+        histogram_freq=0,
+        write_graph=False,     
+        write_images=False,  
+        update_freq='epoch'
+    )
+
+    # Callback
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
         best_model_path, save_best_only=True, monitor="val_loss", mode="min"
     )
     earlystop_cb = tf.keras.callbacks.EarlyStopping(
-        monitor="val_loss", patience=18, restore_best_weights=True, mode="min", start_from_epoch=20
+        monitor="val_loss", patience=24, restore_best_weights=True, mode="min", start_from_epoch=20
     )
     reduce_lr_cb = tf.keras.callbacks.ReduceLROnPlateau(
-        monitor='val_loss', factor=0.7, patience=8, min_lr=1e-6, verbose=1, mode="min", start_from_epoch=18
+        monitor='val_loss', factor=0.75, patience=10, min_lr=1e-6, verbose=1, mode="min", start_from_epoch=12
     )
     csv_logger = tf.keras.callbacks.CSVLogger(csv_log_path, append=True)
 
     print("Starting Teacher training...")
+
+    # Training
     history = model.fit(
         train_dataset,
         validation_data=validation_dataset,
         epochs=epochs,
-        steps_per_epoch=steps_per_epoch,
-        validation_steps=validation_steps,
-        callbacks=[checkpoint_cb, earlystop_cb, reduce_lr_cb, csv_logger]
+        #steps_per_epoch=steps_per_epoch,
+        #validation_steps=validation_steps,
+        callbacks=[checkpoint_cb, earlystop_cb, reduce_lr_cb, csv_logger, tensorboard_cb]
     )
-    
+
+    best_epoch = history.history['val_loss'].index(min(history.history['val_loss'])) + 1
+    best_val_loss = min(history.history['val_loss'])
+    print(f"Best model (lowest val_loss) at epoch {best_epoch} with val_loss = {best_val_loss:.4f}")
+
     if earlystop_cb.stopped_epoch > 0:
         print("Early stopping, training ended!")
     else:
         print("Training completed.")
-    
+
     model.save(final_model_path)
+    model.save_weights(os.path.join(output_dir, "T27103l2.weights.h5"))
     print(f"Teacher model saved to {final_model_path}")
     print(f"Best model saved to {best_model_path}")
     print(f"Training log saved to {csv_log_path}")
@@ -109,7 +149,8 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
 
 def main(args):
     print(f"Starting Teacher training with {args.epochs} epochs")
-    
+
+    # GPU configuration
     if args.gpu_growth:
         gpus = tf.config.list_physical_devices('GPU')
         if gpus:
@@ -120,15 +161,12 @@ def main(args):
             except RuntimeError as e:
                 print(e)
 
-    gpus = tf.config.list_physical_devices('GPU')
-    for i, gpu in enumerate(gpus):
-        try:
-            memory_info = tf.config.experimental.get_memory_info(f'GPU:{i}')
-            total_memory = memory_info['peak'] / (1024**3)
-            print(f"GPU {i}: {gpu.name}, peak memory: {total_memory:.2f} GB")
-        except:
-            print(f"GPU {i}: {gpu.name}")
-    
+    from tensorflow.python.client import device_lib
+    devices = device_lib.list_local_devices()
+    for d in devices:
+        if d.device_type == 'GPU':
+            print(f"GPU: {d.name}, memory limit: {d.memory_limit / (1024 ** 3):.2f} GB")
+
     train_model(
         resume_training=args.resume_training,
         model_path=args.model_path,
@@ -150,51 +188,44 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Training Teacher Model")
-    
-    # Model and training parameters
-    parser.add_argument("--resume_training", action="store_true", 
-                       help="Resume training from existing model")
-    parser.add_argument("--model_path", type=str, default="models_teacher/teacher.keras", 
-                       help="Path to existing model (for resume) or where to save new model")
-    parser.add_argument("--epochs", type=int, required=True, 
-                       help="Number of training epochs")
-    
-    # Data parameters
-    parser.add_argument("--img_size", type=int, nargs=2, default=[128, 128], 
-                       help="Input image size (height width). Default: 128 128")
-    parser.add_argument("--batch_size", type=int, default=32, 
-                       help="Batch size for training. Default: 32")
-    
-    # Dataset paths
-    parser.add_argument("--train_images_dir", type=str, default="./vggface/train", 
-                       help="Path to training images directory")
-    parser.add_argument("--train_targets_dir", type=str, default="./vggface/train_blur", 
-                       help="Path to training targets (blurred) directory")
-    parser.add_argument("--val_images_dir", type=str, default="./vggface/val", 
-                       help="Path to validation images directory")
-    parser.add_argument("--val_targets_dir", type=str, default="./vggface/val_blur", 
-                       help="Path to validation targets (blurred) directory")
-    
-    # Dataset size limits
-    parser.add_argument("--max_train_images", type=int, default=9600, 
-                       help="Maximum number of training images to use")
-    parser.add_argument("--max_val_images", type=int, default=2400, 
-                       help="Maximum number of validation images to use")
-    
-    # GPU configuration
-    parser.add_argument("--gpu_growth", action="store_true", 
-                       help="Enable GPU memory growth (recommended)")
-    
-    # Output configuration
-    parser.add_argument("--output_dir", type=str, default="models_teacher", 
-                       help="Output directory for saving models and logs")
-    parser.add_argument("--best_model_name", type=str, default="best_teacher.keras", 
-                       help="Name for the best model checkpoint")
-    parser.add_argument("--final_model_name", type=str, default="teacher_final.keras", 
-                       help="Name for the final model")
-    parser.add_argument("--csv_log_name", type=str, default="teacher_training_log.csv", 
-                       help="Name for the CSV training log file")
+
+    parser.add_argument("--resume_training", action="store_true",
+                        help="Resume training from existing model")
+    parser.add_argument("--model_path", type=str, default="models_teacher/teacher.keras",
+                        help="Path to existing model or where to save new model")
+    parser.add_argument("--epochs", type=int, required=True,
+                        help="Number of training epochs")
+
+    parser.add_argument("--img_size", type=int, nargs=2, default=[128, 128],
+                        help="Input image size (height width)")
+    parser.add_argument("--batch_size", type=int, default=32,
+                        help="Batch size for training")
+
+    parser.add_argument("--train_images_dir", type=str, default="./vggface/train",
+                        help="Path to training images directory")
+    parser.add_argument("--train_targets_dir", type=str, default="./vggface/train_blur",
+                        help="Path to training targets (blurred) directory")
+    parser.add_argument("--val_images_dir", type=str, default="./vggface/val",
+                        help="Path to validation images directory")
+    parser.add_argument("--val_targets_dir", type=str, default="./vggface/val_blur",
+                        help="Path to validation targets (blurred) directory")
+
+    parser.add_argument("--max_train_images", type=int, default=9600,
+                        help="Maximum number of training images")
+    parser.add_argument("--max_val_images", type=int, default=2400,
+                        help="Maximum number of validation images")
+
+    parser.add_argument("--gpu_growth", action="store_true",
+                        help="Enable GPU memory growth")
+
+    parser.add_argument("--output_dir", type=str, default="models_teacher",
+                        help="Output directory for saving models and logs")
+    parser.add_argument("--best_model_name", type=str, default="best_teacher.keras",
+                        help="Name for the best model checkpoint")
+    parser.add_argument("--final_model_name", type=str, default="teacher_final.keras",
+                        help="Name for the final model")
+    parser.add_argument("--csv_log_name", type=str, default="teacher_training_log.csv",
+                        help="Name for the CSV training log file")
 
     args = parser.parse_args()
     main(args)
-
