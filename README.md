@@ -11,11 +11,11 @@
 
 # Introduction
 This repository contains the code and the information from a thesis work about face blurring.
-The goal is to develop a working face blurring model using a generative approach, based on an encoder-decoder architecture. To do that hardware limitation of embedded devices have to be considered, so the aim is to develop a model with a final size of more or less 1MB and verify the inference time on a board using a board simulator to see wheter it can be fitted on a TinyML device or not and the inference time to asses if it can perform real-time inference. The dataset of images is restricted to contain only medium/large size faces to allow the model to perform better on this type of inputs.
+The goal is to develop a working face blurring model using a U-Net structure, based on an encoder-decoder architecture. To do that hardware limitation of embedded devices have to be considered, so the aim is to develop a model with a final size of more or less 1MB and verify the inference time on a board using a board simulator to see wheter it can be fitted on a TinyML device or not and the inference time to asses if it can perform real-time inference. The dataset of images is restricted to contain only medium/large size faces to allow the model to perform better on this type of inputs.
 
 # Dataset structure
 The training dataset is composed of four different folders and is organized in two different types of folders: training and validation. The total number of images of the dataset is 12000 and they are then divided 80% for training(9600), and 20% for validation. The images are in .jpg format.
-Another important aspect to consider is that images have to be processed as pairs during training so it is really important that the dataset is produced in a way that an image has the same name both in the original and in the blurred folder of the dataset to be then loaded in an ordered way during training. In the files used to blur the dataset, whcih are dataset_blur_blazeface-py and dataset_blur_mediapipe.py there is the possibility to rename the images to obtain a zero padded format like the one presented in the structure below, using an automatic function to calculate the number of zeros needed or giving it as a manual input. This is not a mandatory task but it helps to keep the dataset clean and understandable and with the five zero padded structure chosen for this implementation it can also be expanded easily just by following this nomination technique.
+Another important aspect to consider is that images have to be processed as pairs during training so it is really important that the dataset is produced in a way that an image has the same name both in the original and in the blurred folder of the dataset to be then loaded in an ordered way during training. In the files used to blur the dataset, whcih are dataset_blur_blazeface.py and dataset_blur_mediapipe.py there is the possibility to rename the images to obtain a zero padded format like the one presented in the structure below, using an automatic function to calculate the number of zeros needed or giving it as a manual input. This is not a mandatory task but it helps to keep the dataset clean and understandable and with the five zero padded structure chosen for this implementation it can also be expanded easily just by following this nomination technique.
 The structure of the dataset is the following:
 ```
 ┣ dataset
@@ -36,10 +36,9 @@ The structure of the dataset is the following:
 ┃ ┃ ┣ ...
 ┃ ┃ ┣ 02400.jpg
 ```
-FIRST: the images come from a cropped verison(256x256) of the VGGFace2 dataset found on kaggle:
-This has been done to be coherent to an inspiring research which used the VGGFace2 dataset, XimSwap[]. This process includes a random extraction of the images, since the folders are organized in identities. Si the images extracted were 15000 for the train folder and 300 for the validation folder and then they have been reduced by hand. The VGGFace2 dataset is organised in two folders, train and val, each of them has different sub-folders. The images have been selected randomly from these folders to reach the desired number and it has been stored in the dataset/train and dataset/val folders to then be processed with tha face detector to apply the blurring. 
-The images in the dataset ocntain mostly one face and are for the major part frontal face images where the image usually big.
-SECOND: handmade dataset...
+
+There are 2 verison of the dataset.
+Both are composed of images extracted randomly and then selected by hand from the dataset VGGFace2 in the cropped version 256x256 foung on kaggle[...], images from FDDB dataset[...] (more or less 20%) and images from CelebA-HQ[...] in a 256x256 version(10%)
 
 To produce the structure above the images have been divided into train and val folder and then with the help of a face detector blurring has been performed on them to generate train_blur and val_blur. Two different have been used:
 - [BlazeFace-TFLite-Inference](https://github.com/ibaiGorordo/BlazeFace-TFLite-Inference)
