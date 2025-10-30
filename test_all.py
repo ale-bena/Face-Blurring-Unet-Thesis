@@ -6,24 +6,23 @@ from PIL import Image
 
 IMG_SIZE = (128, 128)
 
-#Calculate the optimal number of zeros based on file count
 def calculate_optimal_zeros(num_files):
     if num_files <= 0:
         return 1
     return len(str(num_files))
 
-# Rename files with zero-padded style
 def rename_files(folder, prefix="", num_zeros=4):
-    """Rename files with zero-padded numbering (e.g., 0001.jpg or img0001.jpg)"""
+    # zero-padded numbering --> 0001.jpg or img0001.jpg
     image_extensions = ('.jpg', '.jpeg', '.png')
     image_files = [f for f in os.listdir(folder) if f.lower().endswith(image_extensions)]
     
     if not image_files:
-        print("No image files found to rename.")
+        print("No image files found to rename")
         return
 
-    print(f"Renaming {len(image_files)} files with {num_zeros} zeros...")
-
+    print(f"Renaming {len(image_files)} files with {num_zeros} zeros")
+    
+    # Create zero-padded number and rename files
     for i, filename in enumerate(image_files, start=1):
         _, ext = os.path.splitext(filename)
         padded_num = str(i).zfill(num_zeros)
@@ -35,7 +34,7 @@ def rename_files(folder, prefix="", num_zeros=4):
             os.rename(old_path, new_path)
             print(f"Renamed: {filename} -> {new_name}")
     
-    print("File renaming completed!")
+    print("File renaming completed")
 
 def load_and_preprocess_image(img_path):
     img = tf.io.read_file(img_path)
@@ -45,13 +44,13 @@ def load_and_preprocess_image(img_path):
     return img
 
 def save_image(tensor, path, output_details=None, format_type='png', quality=95):
-    # If the output is quantized --> dequantize
+    # If output quantized --> dequantize
     if output_details and output_details[0]['dtype'] in [np.int8, np.uint8]:
         scale, zero_point = output_details[0]['quantization']
         tensor = tf.cast(tensor, tf.float32)
-        tensor = (tensor - zero_point) * scale  # bring back to range [0,1]
+        tensor = (tensor - zero_point) * scale
 
-    # Clip between 0 and 1 and convert to uint8
+    # conversion
     img = tf.clip_by_value(tensor, 0.0, 1.0)
     img = tf.image.convert_image_dtype(img, dtype=tf.uint8)
     
@@ -71,18 +70,16 @@ def detect_model_type(model_path):
         raise ValueError(f"Unsupported model format: {model_path}. Use .keras, .h5, or .tflite")
 
 def run_keras_inference(model_path, image_paths, output_dir, format_type, quality):
-    print(f"Loading Keras model from {model_path}")
+    print(f"Loading Keras model from {model_path}...")
     model = tf.keras.models.load_model(model_path, compile=False)
     
     for idx, img_path in enumerate(image_paths, start=1):
         img = load_and_preprocess_image(img_path)
         img_batch = tf.expand_dims(img, axis=0)
         
-        # Inference
         pred = model(img_batch, training=False)
         pred_image = tf.squeeze(pred, axis=0)
-        
-        # Save
+
         #save_filename = f"{idx:03}.{format_type}"
         base_name = os.path.splitext(os.path.basename(img_path))[0]
         save_filename = f"{base_name}.{format_type}"
@@ -91,16 +88,18 @@ def run_keras_inference(model_path, image_paths, output_dir, format_type, qualit
         print(f"Saved: {save_path}")
 
 def run_tflite_inference(model_path, image_paths, output_dir, format_type, quality):
-    print(f"Loading TFLite model from {model_path}...")
+    print(f"Loading TFLite model from {model_path}")
     interpreter = tf.lite.Interpreter(model_path=model_path)
     interpreter.allocate_tensors()
 
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
-    # print(f"Input shape: {input_details[0]['shape']}")
-    # print(f"Input dtype: {input_details[0]['dtype']}")
-    # print(f"Output shape: {output_details[0]['shape']}")
-    # print(f"Output dtype: {output_details[0]['dtype']}")
+    
+    # model info
+    print(f"Input shape: {input_details[0]['shape']}")
+    print(f"Input dtype: {input_details[0]['dtype']}")
+    print(f"Output shape: {output_details[0]['shape']}")
+    print(f"Output dtype: {output_details[0]['dtype']}")
     
     for idx, img_path in enumerate(image_paths, start=1):
         img = load_and_preprocess_image(img_path)
@@ -117,18 +116,16 @@ def run_tflite_inference(model_path, image_paths, output_dir, format_type, quali
             scale, zero_point = input_details[0]['quantization']
             input_data = input_data / scale + zero_point
             input_data = np.clip(input_data, 0, 255).astype(np.uint8)
-        else:  # float32
+        else:
             input_data = input_data.astype(np.float32)
 
         interpreter.set_tensor(input_details[0]['index'], input_data)
 
-        # Run inference
         interpreter.invoke()
 
         pred = interpreter.get_tensor(output_details[0]['index'])
         pred_image = tf.squeeze(pred, axis=0)
 
-        # Save
         #save_filename = f"{idx:03}.{format_type}"
         base_name = os.path.splitext(os.path.basename(img_path))[0]
         save_filename = f"{base_name}.{format_type}"
@@ -139,8 +136,10 @@ def run_tflite_inference(model_path, image_paths, output_dir, format_type, quali
 def main(args):
     os.makedirs(args.output_dir, exist_ok=True)
     
+    # File renaming(optional)
     if args.rename:
         if args.auto_zeros:
+            # Count image files to determine optimal zeros
             image_extensions = ('.jpg', '.jpeg', '.png')
             image_files = [f for f in os.listdir(args.input_dir) if f.lower().endswith(image_extensions)]
             optimal_zeros = calculate_optimal_zeros(len(image_files))
@@ -158,6 +157,7 @@ def main(args):
     
     print(f"Found {len(image_paths)} images to process")
     
+    # Run inference based on model type
     model_type = detect_model_type(args.model_path)
     print(f"Model type detected: {model_type.upper()}")
     
@@ -167,10 +167,12 @@ def main(args):
     elif model_type == 'tflite':
         run_tflite_inference(args.model_path, image_paths, args.output_dir, 
                             args.format, args.quality)
-    print("Inference completed")
+    
+    print("Inference completed successfully!")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Inference script for keras and tflite models")
+    parser = argparse.ArgumentParser(description="Unified inference script for Keras and TFLite models")
+    
     parser.add_argument("--model_path", type=str, required=True, 
                        help="Path to the model file (.keras, .h5, or .tflite)")
     parser.add_argument("--input_dir", type=str, required=True,
@@ -183,6 +185,7 @@ if __name__ == "__main__":
     parser.add_argument("--quality", type=int, default=95, 
                        help="JPEG quality (1-100, only used for jpg format). Default: 95")
     
+    # Rename arguments
     parser.add_argument("--rename", action="store_true", 
                        help="Rename input files with zero-padded numbering before processing")
     parser.add_argument("--num_zeros", type=int, default=4, 
