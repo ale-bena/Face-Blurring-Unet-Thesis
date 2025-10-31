@@ -168,6 +168,15 @@ To try only the inference part, the .tflite models in the different models folde
 QUANTIZATION
 
 
+
+RESULTING MODELS
+| Model        | Parameters     | RAM           | MMAC           | Inference    |
+|--------------|---------------|---------------|----------------|-------------|
+| **Teacher**  | 1,925,667 (1.84 MiB) | 2,150,600 B (2.05 MiB) | 2,609,694,307 | 351.007 ms |
+| **Studentv1**| 482,067 (473.17 KiB) | 1,065,096 B (1,040.13 KiB) | 656,851,763  | 12.786 ms  |
+| **Studentv2**| 1,083,675 (1,061.87 KiB) | 1,614,232 B (1.54 MiB) | 1,471,268,043 | 127.981 ms |
+
+
 [Back to top](#table-of-contents)
 
 # Graphs
@@ -178,6 +187,8 @@ In this section training graphs of the loss will be shown. The loss used is MSE 
     <figcaption><b>Figure 2:</b> Teahcer loss chart</figcaption>
   </figure>
 </div>
+
+
 [Back to top](#table-of-contents)
 
 # Performance assessment
