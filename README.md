@@ -5,7 +5,7 @@
 - [Dataset structure](#dataset-structure)
 - [Model architecture](#model-architecture)
 - [Training](#training)
-- [Results](#graphs)
+- [Results](#results)
 - [Performance](#performance-assesment)
 - [Future works and possible developments](#future-works-and-possible-developments)
 
@@ -186,7 +186,7 @@ RESULTING MODELS
 
 [Back to top](#table-of-contents)
 
-# Graphs
+# Results
 In this section training graphs of the loss will be shown. The loss used is MSE and the other metrics are MAE, SSIM and PSNR. The 2 lines indicates the the training phase(BLUE) and the validation phase(RED).
 <div align="center">
   <figure>
@@ -194,6 +194,10 @@ In this section training graphs of the loss will be shown. The loss used is MSE 
     <figcaption><b>Figure 2:</b> Teahcer loss chart</figcaption>
   </figure>
 </div>
+
+| Type  |      MSE |  val_MSE |     MAE | val_MAE |   SSIM | val_SSIM |   PSNR | val_PSNR |
+|-------|---------:|---------:|--------:|--------:|-------:|---------:|-------:|---------:|
+| teacher | 0.000221 | 0.000519 | 0.00971 | 0.0110  |  0.974 |    0.959 |  36.97 |    34.19 |
 
 
 [Back to top](#table-of-contents)
