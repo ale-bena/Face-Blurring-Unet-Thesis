@@ -40,12 +40,13 @@ The structure of the dataset is the following:
 There are 2 verison of the dataset.
 Both are composed of images extracted randomly and then selected by hand from the dataset VGGFace2 in the cropped version 256x256 foung on kaggle[...], images from FDDB dataset[...] (more or less 20%) and images from CelebA-HQ[...] in a 256x256 version(10%)
 
-To produce the structure above the images have been divided into train and val folder and then with the help of a face detector blurring has been performed on them to generate train_blur and val_blur. Two different have been used:
+To produce the structure above the images have been divided into train and val folder and then with the help of a face detector blurring has been performed on them to generate train_blur and val_blur folders. Two different detectors have been used:
 - [BlazeFace-TFLite-Inference](https://github.com/ibaiGorordo/BlazeFace-TFLite-Inference)
 - Mediapipe official implementation
 
 Both implementation seem to perform weel but they still miss some faces, especially on images where the face is too big, when it is only half face or when there are multiple faces and some of them are small or low resolution.
-That said the mediapipe implementation has been chosen since it is an official implementation, even if the blocks of the architecture should be very similar between the two models.
+That said the mediapipe implementation has been chosen for the first dataset since it is an official implementation, even if the blocks of the architecture should be very similar between the two models. 
+After a close check to the results there were some missed faces, so the decision was to do a second run with the blazzeface detector and then clean up the validation folder by hand to be sure that it is perfect since this impacts directly the metrics. Then all the folders have been padded with black padding to the input size of the model: 128x128 to avoid stretched images during training, since the file uses a resize function without padding.
 
 For further improvements a recommendation is to use a labeled dataset where there is an annotation file containing the boxes of the faces. It will be even better if the label are ellipses instead of boxes or if they can be converted to them with some processing. This last improvement will bring to a more clean and precise result, but for the scope of this research, and for time constraints, this type of process and dataset has been chosen.
 
@@ -56,7 +57,7 @@ The model architecture is based on a simple unet structure, which is a convoluti
 In specific the architecture of the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
 
 
-The resulting models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. Both of the models have 3 layers as said before, the different stand in the size of the filters, which is hald in the smaller model.
+The resulting models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. All the models have 3 layers as said before, the different stand in the size of the filters, which is halv in the studentv1 model, so 16-32-64 and 128 as bottlenck, while for studentv2 is 24-48-96-192.
 ```
 Teacher model:
 ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
@@ -144,34 +145,54 @@ Teacher model:
 [Back to top](#table-of-contents)
 
 # Training 
-Training was performed using T4 GPU on Google colab. The file for the teacher model training is train_teacher.py, while the one for the student training is train_student.py .
+Training was performed using T4 GPU on Google colab. The file for the teacher model training is train_teacher.py, while the one for the student training is train_student.py.
 It is possible to use the pretrained models for inference(tflite versions) or even to perform retraining from scratch or fine tuning. To do this there is the training notebook available: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing)
-Dataset are available as .zip or unzipped at the following links:
-
+Dataset are available as .zip or unzipped at the following links:[][]
+It is important to remember that when training on Colab it is better to have the dataset in local(for example in the /content folder), otherwise the I/O procedure from Drive can slow the training importantly.
 
 To perform retraining there is the need to pull this directory and download the dataset. Then there is the possibility to train the teacher first, and then the student and perform a single image test or a complete test using one of the testsets available at[].
 
-KD explanation
+KNOWLEDGE DISTILLATION TRAINING
+Knowledge distillation is an effective technique in machine learning for adapting or compressing models with identical input and output, even if they have a slightly different structure. It is based on the presence of a teacher and a student model. The last one learns to replicate the teacher's output
+For the students model training the training file is train_student.py and it contains a class called Distiller that defines the metrics used based on the knowledge distillation technique:
+
+IMAGE
+
+Teh teacher is set ad non-trainable and the loss function are still based on MSE, but the total loss is a weighted combination between the loss of the student and the loss between the student and the teacher outputs. The parameter alpha can be tuned to increase or decrease the impact of the teacher. In this case alpha is set to 0,7.
+
+
 
 To try only the inference part, the .tflite models in the different models folders in this repository can be used. Instructions are inside the following script: 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing) (link needs to be changed)
 
+QUANTIZATION
+
+
 [Back to top](#table-of-contents)
 
 # Graphs
-In this section training graphs of the loss will be shown. The loss used is MSE and the other parameters are MAE, SSIM and PSNR. The 2 lines indicates the the training phase and the validation phase.
+In this section training graphs of the loss will be shown. The loss used is MSE and the other metrics are MAE, SSIM and PSNR. The 2 lines indicates the the training phase(BLUE) and the validation phase(RED).
 
 [Back to top](#table-of-contents)
 
 # Performance assessment
 To understand the performance of the models, different testsets are used. The concept is to use images from different datasets to understand where the model might have difficulties or fails.
-These datasets are the following, and most of them have already been used in the training part:
+These datasets considered were the following, and most of them have already been used in the training part:
 - VGGFace2: same characteristics as the majer part of the images used in the training and validation set, has multiple faces images and the size of the faces is various
 - Celeba-HQ: has more centered and aligned images with bigger faces
 - FDDB: as for the one in the training, a derivation of this dataset has been used since the official site is not working at the moment. Like VGGFace2 it has multiple faces and different dimensions
 - WIDER Faces: very diversified an big dataset, it contains images with a lot of small faces and images with bigger ones.
 
 Testsets are not generated randomly, images have been selected with the purpose to understand and asses the performance of the model in different scenarios. For the purpose of this project images with a very high number of faces, and images where the dimension of them is too small, have been avoided. Since the dataset used for training doesn't contain none of them, the performance on this kind of images is expected to be bad and goes out of the scope of the project, which doesn't aim for a perfect performance on every type of image since the model has a small amount of parameters and a limited training dataset.
+
+The first test set uses the images from CelebA-HQ to asses the anonymization level of the model on big faces. This is done using the buffalo_l model form insightface library to extratct the embedding features on both the original and the elaborated image and measure the cosine similarity. The target is to reach a level of similarity lower than 0,4.
+The second and third testsets use images relatively from FDDB and Widerfaces datasets, divided into four folders:
+- Frontal faces: containing images of big frontal faces;
+- Medium faces: containing images of medius size faces;
+- Multiple faces: containing images of big and medium size faces;
+- Difficult cases: containing scenarios that can lead the model to failure easily, such as beards, glasses, dark skin people and small faces. 
+During the test with FDDB testset, what emerged was that all the models work better on frontal an big/medium faces images. As can be seen in \cref{fig:testimg1}, the teacher model has cleaner and more natural blur while the studentv2 gets more aggressive in the blur and studentv1, which is the smaller, tents to blur bigger regions. Especially what happens with the two students is that they also blur parts of the image containing the hands or the neck, such as in image 1,2,3. This effect is lighter studentv2, while it gets worse in the smaller model. This can be caused by the reduction of the parameters, which is important and so the model may be misled by the color of the hand. Also in the dataset only a percentage close to 20\% of the training images contain hands, so this may be a factor to improve. Other situations where the model is in difficulty is when there are sunglasses, especially bigger ones, with darker skin colors and medium/small faces, and when medium/small size faces are partially obscured by accessories like baseball hats. In some cases, especially with medium or smaller faces sometimes the model does not see the face or blurs it only partially.
+The WIDER faces based testset is more difficult for the designed model, because the resolution of the images is way bigger, sometimes also over 1000x1000, and most of them are not square, so what happens when the images are padded is that the size of the faces gets really small and the models struggle to detect them. To conclude, performance for the faces that remain in large/medium size is still good, while it is drastically reduced with smaller dimensions. For these reasons, images are not displayed because the situations with good results are the same as the FDDB testset.
 
 [Back to top](#table-of-contents)
 
