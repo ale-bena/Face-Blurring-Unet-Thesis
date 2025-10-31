@@ -191,6 +191,7 @@ Model parameters, RAM usage, MMAC and inference time on STM32N6570-DK:
 | **Teacher**  | 1,925,667 (1.84 MiB) | 2,150,600 B (2.05 MiB) | 2,609,694,307 | 351.007 ms |
 | **Studentv1**| 482,067 (473.17 KiB) | 1,065,096 B (1,040.13 KiB) | 656,851,763  | 12.786 ms  |
 | **Studentv2**| 1,083,675 (1,061.87 KiB) | 1,614,232 B (1.54 MiB) | 1,471,268,043 | 127.981 ms |
+
 The table show the results obtained on test performed with ST Edge AI Developer Cloud. The board used has slightly higher specs than a common MCU and has a ST Neural-ART Accelerator, that allows to have better inference, especially when using operations such as 2D convolutions and using this allows to deploy also the teacher model. Results are quiet good, however, the hardware accelerator does most of the job, because some tests on lower power MCUs showed that inference takes more than 2 seconds due to the size of the student model, which is still big, and to the complexity of the 2D convolutions used in the architecture. Lighter layers using deptwise separable convolution were tested, but they seemed to perform worse on the visual test, so they are not proposed in the solution.
 
 [Back to top](#table-of-contents)
