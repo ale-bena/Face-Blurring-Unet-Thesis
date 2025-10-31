@@ -1,13 +1,12 @@
 import os
 import argparse
 import tensorflow as tf
-from model_teacher_4layer import build_blur_unet
+from model_teacher import build_blur_unet
 from tensorflow.keras.utils import register_keras_serializable
 from tensorflow.keras.models import Model
 from tensorflow.keras.callbacks import TensorBoard
 import datetime
 
-# Default Parameters
 DEFAULT_IMG_SIZE = (128, 128)
 DEFAULT_BATCH_SIZE = 32
 AUTOTUNE = tf.data.AUTOTUNE
@@ -22,7 +21,7 @@ def psnr_metric(y_true, y_pred):
 
 def process_path(img_path, tgt_path, img_size):
     img = tf.io.read_file(img_path)
-    img = tf.image.decode_jpeg(img, channels=3)
+    img = tf.image.decode_jpeg(img, channels=3) # needs changing if png format is used for the dataset
     img = tf.image.resize(img, img_size)
     img = tf.cast(img, tf.float32) / 255.0
 
@@ -34,7 +33,8 @@ def process_path(img_path, tgt_path, img_size):
     return img, tgt
 
 def load_dataset(image_dir, target_dir, img_size, batch_size, max_images=None, cache_path=None):
-    image_files = sorted([os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith(".jpg")])
+    # Images are loaded in an order to be processed in pairs
+    image_files = sorted([os.path.join(image_dir, f) for f in os.listdir(image_dir) if f.endswith(".jpg")]) # If using png format for the dataset change to .png
     target_files = sorted([os.path.join(target_dir, f) for f in os.listdir(target_dir) if f.endswith(".jpg")])
 
     if max_images is not None:
@@ -82,13 +82,6 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
     validation_dataset = load_dataset(val_images_dir, val_targets_dir, img_size, batch_size,
                                       max_images=max_val_images,
                                       cache_path="/content/val_cache.tfdata")
-    
-    
-    #train_dataset = load_dataset(train_images_dir, train_targets_dir, img_size, batch_size, max_images=max_train_images)
-    #validation_dataset = load_dataset(val_images_dir, val_targets_dir, img_size, batch_size, max_images=max_val_images)
-
-    #steps_per_epoch = max_train_images // batch_size
-    #validation_steps = max_val_images // batch_size
 
     os.makedirs(output_dir, exist_ok=True)
     best_model_path = os.path.join(output_dir, best_model_name)
@@ -107,7 +100,7 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
         update_freq='epoch'
     )
 
-    # Callback
+    # Callbacks
     checkpoint_cb = tf.keras.callbacks.ModelCheckpoint(
         best_model_path, save_best_only=True, monitor="val_loss", mode="min"
     )
@@ -120,8 +113,6 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
     csv_logger = tf.keras.callbacks.CSVLogger(csv_log_path, append=True)
 
     print("Starting Teacher training...")
-
-    # Training
     history = model.fit(
         train_dataset,
         validation_data=validation_dataset,
@@ -136,12 +127,12 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
     print(f"Best model (lowest val_loss) at epoch {best_epoch} with val_loss = {best_val_loss:.4f}")
 
     if earlystop_cb.stopped_epoch > 0:
-        print("Early stopping, training ended!")
+        print("Early stopping, training ended")
     else:
-        print("Training completed.")
+        print("Training completed")
 
     model.save(final_model_path)
-    model.save_weights(os.path.join(output_dir, "T27103l2.weights.h5"))
+    model.save_weights(os.path.join(output_dir, "teacher.weights.h5"))
     print(f"Teacher model saved to {final_model_path}")
     print(f"Best model saved to {best_model_path}")
     print(f"Training log saved to {csv_log_path}")
@@ -150,7 +141,7 @@ def train_model(resume_training, model_path, epochs, img_size, batch_size,
 def main(args):
     print(f"Starting Teacher training with {args.epochs} epochs")
 
-    # GPU configuration
+    # GPU configuration(works on Colab, not guaranteed to work in other situations)
     if args.gpu_growth:
         gpus = tf.config.list_physical_devices('GPU')
         if gpus:
@@ -229,3 +220,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args)
+
