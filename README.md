@@ -170,6 +170,7 @@ QUANTIZATION
 
 
 RESULTING MODELS
+Model parameters, RAM usage, MMAC and inference time on STM32N6570-DK:
 | Model        | Parameters     | RAM           | MMAC           | Inference    |
 |--------------|---------------|---------------|----------------|-------------|
 | **Teacher**  | 1,925,667 (1.84 MiB) | 2,150,600 B (2.05 MiB) | 2,609,694,307 | 351.007 ms |
