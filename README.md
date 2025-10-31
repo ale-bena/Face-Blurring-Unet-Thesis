@@ -59,6 +59,29 @@ In specific the architecture of the model in analysis is a 3 layer encoder and 3
 
 The resulting models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. All the models have 3 layers as said before, the different stand in the size of the filters, which is halv in the studentv1 model, so 16-32-64 and 128 as bottlenck, while for studentv2 is 24-48-96-192.
 ```
+Conv Block (`conv_block`) = 2× Conv + BatchNorm + ReLU
+
+**Architecture:**
+Input
+│
+Encoder:
+├─ c1 = conv_block(inputs, 32)
+├─ p1 = MaxPooling2D(2,2)
+├─ c2 = conv_block(64)
+├─ p2 = MaxPooling2D(2,2)
+├─ c3 = conv_block(128)
+└─ p3 = MaxPooling2D(2,2)
+
+Bottleneck:
+└─ bn = conv_block(256)
+
+Decoder:
+├─ d3 = Conv2DTranspose(128) → Concatenate(c3) → conv_block(128)
+├─ d2 = Conv2DTranspose(64) → Concatenate(c2) → conv_block(64)
+└─ d1 = Conv2DTranspose(32) → Concatenate(c1) → conv_block(32)
+
+Output:
+└─ outputs = Conv2D(3, (1,1), activation='sigmoid')
 Teacher model:
 ┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
 ┃ Layer (type)        ┃ Output Shape      ┃    Param # ┃ Connected to      ┃
