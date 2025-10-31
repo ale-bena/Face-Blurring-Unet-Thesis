@@ -51,6 +51,7 @@ After a close check to the results there were some missed faces, so the decision
 The versions of the datasets are available at the following links:
 - [dataset1](https://drive.google.com/drive/folders/1nc2RxoH2I2nXbIiicZD8KBU1zQQUWBJD?usp=sharing), [dataset1 zip](https://drive.google.com/file/d/1x5ATVlCTmYPZ24dOTgq-wUrLTqsGatCW/view?usp=drive_link)
 - [dataset2](https://drive.google.com/drive/folders/1wqO6618ofLW8gB9EpMY_0mKAMW9D5pmD?usp=drive_link), [dataset2 zip](https://drive.google.com/file/d/1xL5uTMsSbD9dynzjN-AHahwejFW7vyf-/view?usp=drive_link)
+
 For further improvements a recommendation is to use a labeled dataset where there is an annotation file containing the boxes of the faces. It will be even better if the label are ellipses instead of boxes or if they can be converted to them with some processing. This last improvement will bring to a more clean and precise result, but for the scope of this research, and for time constraints, this type of process and dataset has been chosen.
 
 [Back to top](#table-of-contents)
@@ -92,16 +93,20 @@ Output:
 # Training 
 Training was performed using T4 GPU on Google colab. The file for the teacher model training is train_teacher.py, while the one for the student training is train_student.py.
 It is possible to use the pretrained models for inference(tflite versions) or even to perform retraining from scratch or fine tuning. To do this there is the training notebook available: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing)
-Dataset are available as .zip or unzipped at the following links:[][]
 It is important to remember that when training on Colab it is better to have the dataset in local(for example in the /content folder), otherwise the I/O procedure from Drive can slow the training importantly.
 
-To perform retraining there is the need to pull this directory and download the dataset. Then there is the possibility to train the teacher first, and then the student and perform a single image test or a complete test using one of the testsets available at[].
+To perform retraining there is the need to pull this directory and download the dataset. Then there is the possibility to train the teacher first, and then the student and perform a single image test or a complete test using one of the [testsets](https://drive.google.com/drive/folders/1Hn19eYKDg3o819H9MJytOBQyxTc9aUpO?usp=sharing).
 
 KNOWLEDGE DISTILLATION TRAINING
 Knowledge distillation is an effective technique in machine learning for adapting or compressing models with identical input and output, even if they have a slightly different structure. It is based on the presence of a teacher and a student model. The last one learns to replicate the teacher's output
 For the students model training the training file is train_student.py and it contains a class called Distiller that defines the metrics used based on the knowledge distillation technique:
 
-IMAGE
+<div align="center">
+  <figure>
+    <img src="doc/KDlosses.png" alt="Image Description" width="40%">
+    <figcaption><b>Figure 2:</b> KD loss functions</figcaption>
+  </figure>
+</div>
 
 Teh teacher is set ad non-trainable and the loss function are still based on MSE, but the total loss is a weighted combination between the loss of the student and the loss between the student and the teacher outputs. The parameter alpha can be tuned to increase or decrease the impact of the teacher. In this case alpha is set to 0,7.
 
