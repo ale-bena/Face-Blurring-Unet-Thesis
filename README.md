@@ -59,9 +59,9 @@ For further improvements a recommendation is to use a labeled dataset where ther
 # Model architecture
 The model architecture is based on a simple unet structure, which is a convolutial network with a downsample(encoder) and an upsample(decoder) path. This type of path is common in image reconstruction or detection tasks.
 In specific the architecture of the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
-<div align="left">
+<div align="center">
   <figure>
-    <img src="doc/U-Net.PNG" alt="Image Description" width="40%">
+    <img src="doc/U-Net.PNG" alt="Image Description" width="50%">
     <figcaption><b>Figure 2:</b> U-Net architecture</figcaption>
   </figure>
 </div>
