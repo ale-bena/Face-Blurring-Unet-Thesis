@@ -24,6 +24,7 @@ def decoder_block(x, skip, filters):
     return x
 
 def build_blur_unet(input_shape=(128, 128, 3)):
+    # Input
     inputs = layers.Input(shape=input_shape)
 
     # Encoder
@@ -39,7 +40,8 @@ def build_blur_unet(input_shape=(128, 128, 3)):
     d2 = decoder_block(d3, c2, 48)
     d1 = decoder_block(d2, c1, 24)
 
-    # Output layer
+    # Output
     outputs = layers.Conv2D(3, (1, 1), activation='sigmoid')(d1)
+
 
     return Model(inputs, outputs)
