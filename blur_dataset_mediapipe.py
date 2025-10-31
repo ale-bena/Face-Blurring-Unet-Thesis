@@ -15,11 +15,8 @@ def calculate_optimal_zeros(num_files):
 
 
 def anonymize_face(img, bbox, scale_factor=0.5, min_kernel=25, max_kernel=101):
-    """
-    Apply blur proportional to face size.
-    scale_factor: fraction of face size to determine kernel
-    min_kernel, max_kernel: lower and upper kernel limits (must be odd)
-    """
+    # Applies blur proportionally to face size
+
     x1, y1, x2, y2 = bbox
     h, w = img.shape[:2]
 
@@ -33,10 +30,11 @@ def anonymize_face(img, bbox, scale_factor=0.5, min_kernel=25, max_kernel=101):
 
     roi = img[y1:y2, x1:x2]
 
+    # kernel computation
     face_size = max(y2 - y1, x2 - x1)
     blur_kernel = int(face_size * scale_factor)
 
-    if blur_kernel % 2 == 0:
+    if blur_kernel % 2 == 0: #kernel must be odd
         blur_kernel += 1
     blur_kernel = max(min_kernel, min(max_kernel, blur_kernel))
 
@@ -126,3 +124,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.input_dir, args.output_dir, args.sort, args.rename, args.num_zeros, args.auto_zeros)
+
