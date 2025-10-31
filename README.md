@@ -170,12 +170,18 @@ QUANTIZATION
 
 
 RESULTING MODELS
-Model parameters, RAM usage, MMAC and inference time on STM32N6570-DK:
-| Model        | Parameters     | RAM           | MMAC           | Inference    |
-|--------------|---------------|---------------|----------------|-------------|
-| **Teacher**  | 1,925,667 (1.84 MiB) | 2,150,600 B (2.05 MiB) | 2,609,694,307 | 351.007 ms |
-| **Studentv1**| 482,067 (473.17 KiB) | 1,065,096 B (1,040.13 KiB) | 656,851,763  | 12.786 ms  |
-| **Studentv2**| 1,083,675 (1,061.87 KiB) | 1,614,232 B (1.54 MiB) | 1,471,268,043 | 127.981 ms |
+| Model        | Type             | Size (KB) |
+|--------------|-----------------|-----------|
+| **Teacher**  | .keras           | 22,819    |
+|              | .tflite (float32)| 7,535     |
+|              | .tflite (int8)  | 1,938     |
+| **Studentv1**| .keras           | 2,078     |
+|              | .tflite (float32)| 1,896     |
+|              | .tflite (int8)  | 507       |
+| **Studentv2**| .keras           | 4,432     |
+|              | .tflite (float32)| 4,247     |
+|              | .tflite (int8)  | 1,106     |
+
 
 
 [Back to top](#table-of-contents)
@@ -210,6 +216,15 @@ The second and third testsets use images relatively from FDDB and Widerfaces dat
 - Difficult cases: containing scenarios that can lead the model to failure easily, such as beards, glasses, dark skin people and small faces. 
 During the test with FDDB testset, what emerged was that all the models work better on frontal an big/medium faces images. As can be seen in \cref{fig:testimg1}, the teacher model has cleaner and more natural blur while the studentv2 gets more aggressive in the blur and studentv1, which is the smaller, tents to blur bigger regions. Especially what happens with the two students is that they also blur parts of the image containing the hands or the neck, such as in image 1,2,3. This effect is lighter studentv2, while it gets worse in the smaller model. This can be caused by the reduction of the parameters, which is important and so the model may be misled by the color of the hand. Also in the dataset only a percentage close to 20\% of the training images contain hands, so this may be a factor to improve. Other situations where the model is in difficulty is when there are sunglasses, especially bigger ones, with darker skin colors and medium/small faces, and when medium/small size faces are partially obscured by accessories like baseball hats. In some cases, especially with medium or smaller faces sometimes the model does not see the face or blurs it only partially.
 The WIDER faces based testset is more difficult for the designed model, because the resolution of the images is way bigger, sometimes also over 1000x1000, and most of them are not square, so what happens when the images are padded is that the size of the faces gets really small and the models struggle to detect them. To conclude, performance for the faces that remain in large/medium size is still good, while it is drastically reduced with smaller dimensions. For these reasons, images are not displayed because the situations with good results are the same as the FDDB testset.
+
+
+
+Model parameters, RAM usage, MMAC and inference time on STM32N6570-DK:
+| Model        | Parameters     | RAM           | MMAC           | Inference    |
+|--------------|---------------|---------------|----------------|-------------|
+| **Teacher**  | 1,925,667 (1.84 MiB) | 2,150,600 B (2.05 MiB) | 2,609,694,307 | 351.007 ms |
+| **Studentv1**| 482,067 (473.17 KiB) | 1,065,096 B (1,040.13 KiB) | 656,851,763  | 12.786 ms  |
+| **Studentv2**| 1,083,675 (1,061.87 KiB) | 1,614,232 B (1.54 MiB) | 1,471,268,043 | 127.981 ms |
 
 [Back to top](#table-of-contents)
 
