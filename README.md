@@ -174,7 +174,7 @@ QUANTIZATION
 In this section training graphs of the loss will be shown. The loss used is MSE and the other metrics are MAE, SSIM and PSNR. The 2 lines indicates the the training phase(BLUE) and the validation phase(RED).
 <div align="center">
   <figure>
-    <img src="doc/tlz.png" alt="Descrizione immagine" width="60%">
+    <img src="doc/tlz.png" alt="Descrizione immagine" width="40%">
     <figcaption><b>Figure 2:</b> Teahcer loss chart</figcaption>
   </figure>
 </div>
