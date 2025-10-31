@@ -7,7 +7,7 @@
 - [Training](#training)
 - [Results](#results)
 - [Performance](#performance-assesment)
-- [Future works and possible developments](#future-works-and-possible-developments)
+- [Conclusion and Future Work](#conclusion and future work)
 
 # Introduction
 This repository contains the code and the information from a thesis work about face blurring.
@@ -179,7 +179,8 @@ The second and third testsets use images relatively from FDDB and Widerfaces dat
 - Medium faces: containing images of medius size faces;
 - Multiple faces: containing images of big and medium size faces;
 - Difficult cases: containing scenarios that can lead the model to failure easily, such as beards, glasses, dark skin people and small faces. 
-During the test with FDDB testset, what emerged was that all the models work better on frontal an big/medium faces images. As can be seen in \cref{fig:testimg1}, the teacher model has cleaner and more natural blur while the studentv2 gets more aggressive in the blur and studentv1, which is the smaller, tents to blur bigger regions. Especially what happens with the two students is that they also blur parts of the image containing the hands or the neck, such as in image 1,2,3. This effect is lighter studentv2, while it gets worse in the smaller model. This can be caused by the reduction of the parameters, which is important and so the model may be misled by the color of the hand. Also in the dataset only a percentage close to 20\% of the training images contain hands, so this may be a factor to improve. Other situations where the model is in difficulty is when there are sunglasses, especially bigger ones, with darker skin colors and medium/small faces, and when medium/small size faces are partially obscured by accessories like baseball hats. In some cases, especially with medium or smaller faces sometimes the model does not see the face or blurs it only partially.
+
+During the test with FDDB testset, what emerged was that all the models work better on frontal an big/medium faces images. As can be seen in the figure below, the teacher model has cleaner and more natural blur while the studentv2 gets more aggressive in the blur and studentv1, which is the smaller, tents to blur bigger regions. Especially what happens with the two students is that they also blur parts of the image containing the hands or the neck, such as in image 1,2,3. This effect is lighter studentv2, while it gets worse in the smaller model. This can be caused by the reduction of the parameters, which is important and so the model may be misled by the color of the hand. Also in the dataset only a percentage close to 20\% of the training images contain hands, so this may be a factor to improve. Other situations where the model is in difficulty is when there are sunglasses, especially bigger ones, with darker skin colors and medium/small faces, and when medium/small size faces are partially obscured by accessories like baseball hats. In some cases, especially with medium or smaller faces sometimes the model does not see the face or blurs it only partially.
 The WIDER faces based testset is more difficult for the designed model, because the resolution of the images is way bigger, sometimes also over 1000x1000, and most of them are not square, so what happens when the images are padded is that the size of the faces gets really small and the models struggle to detect them. To conclude, performance for the faces that remain in large/medium size is still good, while it is drastically reduced with smaller dimensions. For these reasons, images are not displayed because the situations with good results are the same as the FDDB testset.
 
 
@@ -190,14 +191,12 @@ Model parameters, RAM usage, MMAC and inference time on STM32N6570-DK:
 | **Teacher**  | 1,925,667 (1.84 MiB) | 2,150,600 B (2.05 MiB) | 2,609,694,307 | 351.007 ms |
 | **Studentv1**| 482,067 (473.17 KiB) | 1,065,096 B (1,040.13 KiB) | 656,851,763  | 12.786 ms  |
 | **Studentv2**| 1,083,675 (1,061.87 KiB) | 1,614,232 B (1.54 MiB) | 1,471,268,043 | 127.981 ms |
+The table show the results obtained on test performed with ST Edge AI Developer Cloud. The board used has slightly higher specs than a common MCU and has a ST Neural-ART Accelerator, that allows to have better inference, especially when using operations such as 2D convolutions and using this allows to deploy also the teacher model. Results are quiet good, however, the hardware accelerator does most of the job, because some tests on lower power MCUs showed that inference takes more than 2 seconds due to the size of the student model, which is still big, and to the complexity of the 2D convolutions used in the architecture. Lighter layers using deptwise separable convolution were tested, but they seemed to perform worse on the visual test, so they are not proposed in the solution.
 
 [Back to top](#table-of-contents)
 
-# Future works and possible developments
-The first interesting thing to do will be testing the model on a TinyML device with a camera that capture an image, or a transmitting an image via UART and then stream the result to measure real time processing time and possible problems.
+# Conclusion and Future Work
+To conclude the designed approach works quiet good on large/medium size faces, still having some missed or partially blurred faces. The project can be useful to understand how this type of models work, how an image to image training is performed and the possible difficulties and things to improve when dealing with this architectures. 
+There is still a lot of room for improvements, performing more tests with differen number of layer and filters and using lighter blocks designed for embedded devices, which provide faster inference and less energy consumption. Also quantization aware training would be an interesting approach to try in the future to see wheter the accuracy loss is reduced when quantizing the model.
+This type of approach might seem controversial considering the limitation of embedded devices, and the high memory footpring and computational impact that and encoder-decoder network can have, but it is very interesting to verify these parameters and think of possible future improvements. An interesting path to consider is usign a pre-trained lightweight face detector as a backbone to detect the faces, so only the decoder part can be trained to blur based on the output of the backbone, while keeping the encoder weights freezed. Other improvements on the dataset side may be expanding the dataset adding variety, using ellipses for blurring instead of boxes, and using labeled images to reduce the presence of possible non blurred faces in the training data. 
 
-As stated in the section [Dataset structure](#dataset-structure), one possible development, without changing the structure of the model, or the pipeline of the trainig part, would be reworking the dataset to make it bigger, more various and with more precise blurring, using ellipses instead of boxes and a pre-labelled dataset instead of a face detector.
-
-To make the model even smaller, methods such as pruning can be applied, or also custom methods related to a specific board...
-
-This project can also be a base to understand constraints and problems in order to develop another interesting approach such as face swapping for embedded devices.
