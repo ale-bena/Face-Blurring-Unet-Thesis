@@ -103,7 +103,7 @@ For the students model training the training file is train_student.py and it con
 
 <div align="center">
   <figure>
-    <img src="doc/KD_losses.png" alt="Image Description" width="40%">
+    <img src="doc/KD_losses.png" alt="Image Description" width="25%">
     <figcaption><b>Figure 2:</b> KD loss functions</figcaption>
   </figure>
 </div>
