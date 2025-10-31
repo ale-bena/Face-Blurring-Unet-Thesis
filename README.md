@@ -1,11 +1,11 @@
-<h1 align="center">Face blurring project</h1>
+<h1 align="center">Face Blurring Unet Thesis</h1>
   
 ## Table of contents
 - [Introduction](#introduction)
 - [Dataset structure](#dataset-structure)
-- [Graphs](#graphs)
 - [Model architecture](#model-architecture)
 - [Training](#training)
+- [Results](#graphs)
 - [Performance](#performance-assesment)
 - [Future works and possible developments](#future-works-and-possible-developments)
 
