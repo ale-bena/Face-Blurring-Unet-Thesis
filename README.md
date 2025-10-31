@@ -38,11 +38,11 @@ The structure of the dataset is the following:
 ```
 
 There are 2 verison of the dataset.
-Both are composed of images extracted randomly and then selected by hand from the dataset VGGFace2 in the cropped version 256x256 foung on kaggle[...], images from FDDB dataset[...] (more or less 20%) and images from CelebA-HQ[...] in a 256x256 version(10%)
+Both are composed of images extracted randomly and then selected by hand from the dataset [VGGFace2](https://www.kaggle.com/datasets/hearfool/vggface2) in the cropped version 256x256 found on Kaggle website, images from [FDDB](https://www.kaggle.com/datasets/cormacwc/fddb-dataset) dataset from Kaggle website(more or less 20%) and images from [CelebA-HQ](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256) in a 256x256 version(10%) from Kaggle website
 
 To produce the structure above the images have been divided into train and val folder and then with the help of a face detector blurring has been performed on them to generate train_blur and val_blur folders. Two different detectors have been used:
 - [BlazeFace-TFLite-Inference](https://github.com/ibaiGorordo/BlazeFace-TFLite-Inference)
-- Mediapipe official implementation
+- [Mediapipe](https://mediapipe.readthedocs.io/en/latest/solutions/face_detection.html) official implementation
 
 Both implementation seem to perform weel but they still miss some faces, especially on images where the face is too big, when it is only half face or when there are multiple faces and some of them are small or low resolution.
 That said the mediapipe implementation has been chosen for the first dataset since it is an official implementation, even if the blocks of the architecture should be very similar between the two models. 
@@ -59,7 +59,12 @@ For further improvements a recommendation is to use a labeled dataset where ther
 # Model architecture
 The model architecture is based on a simple unet structure, which is a convolutial network with a downsample(encoder) and an upsample(decoder) path. This type of path is common in image reconstruction or detection tasks.
 In specific the architecture of the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
-
+<div align="left">
+  <figure>
+    <img src="doc/U-Net.PNG" alt="Image Description" width="40%">
+    <figcaption><b>Figure 2:</b> U-Net architecture</figcaption>
+  </figure>
+</div>
 
 The resulting models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. All the models have 3 layers as said before, the different stand in the size of the filters, which is halv in the studentv1 model, so 16-32-64 and 128 as bottlenck, while for studentv2 is 24-48-96-192.
 ```
