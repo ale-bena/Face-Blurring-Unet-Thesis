@@ -101,7 +101,7 @@ KNOWLEDGE DISTILLATION TRAINING
 Knowledge distillation is an effective technique in machine learning for adapting or compressing models with identical input and output, even if they have a slightly different structure. It is based on the presence of a teacher and a student model. The last one learns to replicate the teacher's output
 For the students model training the training file is train_student.py and it contains a class called Distiller that defines the metrics used based on the knowledge distillation technique:
 
-<div align="center">
+<div align="left">
   <figure>
     <img src="doc/KD_losses.png" alt="Image Description" width="25%">
     <figcaption><b>Figure 2:</b> KD loss functions</figcaption>
