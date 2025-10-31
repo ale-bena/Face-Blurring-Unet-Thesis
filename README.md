@@ -7,7 +7,7 @@
 - [Training](#training)
 - [Results](#results)
 - [Performance](#performance-assesment)
-- [Conclusion and Future Work](#conclusion and future work)
+- [Conclusion and Future Work](#conclusion-and-future-work)
 
 # Introduction
 This repository contains the code and the information from a thesis work about face blurring.
