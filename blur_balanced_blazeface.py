@@ -7,14 +7,10 @@ from BlazeFaceDetection.blazeFaceDetector import blazeFaceDetector
 counter = 0
 
 def anonymize_face(img, bbox, scale_factor=0.5, min_kernel=25, max_kernel=101):
-    """
-    Applica blur proporzionale alla dimensione della faccia.
-    bbox: (x1, y1, x2, y2) in pixel
-    """
+    #blur is applied proportionaly to the size of the face
     x1, y1, x2, y2 = bbox
     h, w = img.shape[:2]
 
-    # Clipping alle dimensioni dell'immagine
     x1 = max(0, x1)
     y1 = max(0, y1)
     x2 = min(w, x2)
@@ -25,15 +21,13 @@ def anonymize_face(img, bbox, scale_factor=0.5, min_kernel=25, max_kernel=101):
 
     roi = img[y1:y2, x1:x2]
 
-    # calcola kernel proporzionale alla dimensione della faccia
+    # Kernel computation
     face_size = max(y2 - y1, x2 - x1)
     blur_kernel = int(face_size * scale_factor)
 
-    # kernel deve essere dispari
-    if blur_kernel % 2 == 0:
+    if blur_kernel % 2 == 0: # the kernel must be even
         blur_kernel += 1
 
-    # limitazione kernel
     blur_kernel = max(min_kernel, min(max_kernel, blur_kernel))
 
     roi_blurred = cv2.GaussianBlur(roi, (blur_kernel, blur_kernel), 0)
@@ -45,11 +39,9 @@ def process_image(image, faceDetector):
     global counter
     counter += 1
 
-    # Detect faces
     detectionResults = faceDetector.detectFaces(image)
 
     for box in detectionResults.boxes:
-        # Convert normalized coordinates in pixel
         x1 = int(box[0] * image.shape[1])
         y1 = int(box[1] * image.shape[0])
         x2 = int(box[2] * image.shape[1])
@@ -60,7 +52,7 @@ def process_image(image, faceDetector):
     return image
 
 def rename(folder, prefix="img"):
-    jpg_files = [f for f in os.listdir(folder) if f.lower().endswith(".jpg")]
+    jpg_files = [f for f in os.listdir(folder) if f.lower().endswith(".jpg")] # If png format is used change is needed
     for i, filename in enumerate(jpg_files, start=1):
         new_name = f"{prefix}{i}.jpg"
         old_path = os.path.join(folder, filename)
@@ -70,7 +62,6 @@ def rename(folder, prefix="img"):
 def main(input_dir, output_dir, model_type, score_threshold, iou_threshold):
     os.makedirs(output_dir, exist_ok=True)
 
-    # Initialize face detector
     faceDetector = blazeFaceDetector(model_type, score_threshold, iou_threshold)
 
     for filename in os.listdir(input_dir):
@@ -95,3 +86,4 @@ if __name__ == "__main__":
     parser.add_argument("--model_type", type=str, default="front", help="model type")
     args = parser.parse_args()
     main(args.input_dir, args.output_dir, args.model_type, args.score_threshold, args.iou_threshold)
+
