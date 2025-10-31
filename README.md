@@ -116,7 +116,8 @@ To try only the inference part, the .tflite models in the different models folde
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing) (link needs to be changed)
 
 QUANTIZATION
-
+Quantization is a model compression technique that aims to reduce the memory footprint and computational requirements of neural networks. It operates by representing the model parameters and activations with a lower numerical precision, typically passing from 32 bit floating point (FP32) to 16 bit or 8 bit integer (INT8) formats. This reduction comes at the cost of potential degradation in model accuracy depending on the quantization method and the model's sensitivity to these changes. 
+For this project post training quantization is used, since the aim of the project is not to maximize the performance but to understand the memory footprint and possible performance of the models. 
 
 
 RESULTING MODELS
