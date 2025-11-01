@@ -111,7 +111,7 @@ To perform retraining there is the need to pull this directory and download the 
 
 Knowledge distillation is an effective technique in machine learning for adapting or compressing models with identical input and output, even if they have a slightly different structure. It is based on the presence of a teacher and a student model. The last one learns to replicate the teacher's output
 For the students model training the training file is train_student.py and it contains a class called Distiller that defines the metrics used based on the knowledge distillation technique:
-<p align="center">
+<p align="left">
   <img src="doc/KD_losses.png" width="30%" />
   <br>
   <b>Figure 2:</b>KD loss functions
@@ -124,7 +124,7 @@ Quantization is a model compression technique that aims to reduce the memory foo
 For this project post training quantization is used, since the aim of the project is not to maximize the performance but to understand the memory footprint and possible performance of the models. 
 
 
-RESULTING MODELS
+### RESULTING MODELS
 
 | Model        | Type             | Size (KB) |
 |--------------|-----------------|-----------|
@@ -139,8 +139,8 @@ RESULTING MODELS
 |              | .tflite (int8)  | 1,106     |
 
 
-To try only the inference part, the .tflite models in the different models folders in this repository can be used. Instructions are inside the following script: 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing) (link needs to be changed)
+To try only the inference part, the models in keras and tflite format are available in the folders models_teacher and models_student. An example of inference and the instructions are inside the following script: 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1wv-sC5Ba_XNtNyFNc4E4fK9ME20CQIOG?usp=sharing)
 
 [Back to top](#table-of-contents)
 
