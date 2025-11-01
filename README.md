@@ -107,7 +107,8 @@ It is important to remember that when training on Colab it is better to have the
 
 To perform retraining there is the need to pull this directory and download the dataset. Then there is the possibility to train the teacher first, and then the student and perform a single image test or a complete test using one of the [testsets](https://drive.google.com/drive/folders/1Hn19eYKDg3o819H9MJytOBQyxTc9aUpO?usp=sharing).
 
-KNOWLEDGE DISTILLATION TRAINING
+### KNOWLEDGE DISTILLATION TRAINING
+
 Knowledge distillation is an effective technique in machine learning for adapting or compressing models with identical input and output, even if they have a slightly different structure. It is based on the presence of a teacher and a student model. The last one learns to replicate the teacher's output
 For the students model training the training file is train_student.py and it contains a class called Distiller that defines the metrics used based on the knowledge distillation technique:
 <p align="center">
@@ -118,7 +119,7 @@ For the students model training the training file is train_student.py and it con
 
 The teacher is set as non-trainable and the loss functions for training and validation are still based on MSE, but the total loss is a weighted combination between the loss of the student and the loss between the student and the teacher outputs. The parameter alpha can be tuned to increase or decrease the impact of the teacher. In this case alpha is set to 0,7, so the teacher impact is 0,3.
 
-QUANTIZATION
+### QUANTIZATION
 Quantization is a model compression technique that aims to reduce the memory footprint and computational requirements of neural networks. It operates by representing the model parameters and activations with a lower numerical precision, typically passing from 32 bit floating point (FP32) to 16 bit or 8 bit integer (INT8) formats. This reduction comes at the cost of potential degradation in model accuracy depending on the quantization method and the model's sensitivity to these changes. 
 For this project post training quantization is used, since the aim of the project is not to maximize the performance but to understand the memory footprint and possible performance of the models. 
 
