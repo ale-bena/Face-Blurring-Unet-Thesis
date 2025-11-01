@@ -57,6 +57,8 @@ For further improvements a recommendation is to use a labeled dataset where ther
 [Back to top](#table-of-contents)
 
 # Model architecture
+SCELTA TENSORFLOW
+
 The model architecture is based on a simple unet structure, which is a convolutial network with a downsample(encoder) and an upsample(decoder) path. This type of path is common in image reconstruction or detection tasks.
 In specific the architecture of the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
 <div align="center">
@@ -179,6 +181,22 @@ The second and third testsets use images relatively from FDDB and Widerfaces dat
 - Medium faces: containing images of medius size faces;
 - Multiple faces: containing images of big and medium size faces;
 - Difficult cases: containing scenarios that can lead the model to failure easily, such as beards, glasses, dark skin people and small faces. 
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="doc/results1.png" width="40%"><br>
+        <sub>original|teacher|studentv2|studentv1</sub>
+      </td>
+      <td align="center">
+        <img src="doc/results2.png" width="40%"><br>
+        <sub>original|teacher|studentv2|studentv1</sub>
+      </td>
+    </tr>
+  </table>
+</div>
+
 
 During the test with FDDB testset, what emerged was that all the models work better on frontal an big/medium faces images. As can be seen in the figure below, the teacher model has cleaner and more natural blur while the studentv2 gets more aggressive in the blur and studentv1, which is the smaller, tents to blur bigger regions. Especially what happens with the two students is that they also blur parts of the image containing the hands or the neck, such as in image 1,2,3. This effect is lighter studentv2, while it gets worse in the smaller model. This can be caused by the reduction of the parameters, which is important and so the model may be misled by the color of the hand. Also in the dataset only a percentage close to 20\% of the training images contain hands, so this may be a factor to improve. Other situations where the model is in difficulty is when there are sunglasses, especially bigger ones, with darker skin colors and medium/small faces, and when medium/small size faces are partially obscured by accessories like baseball hats. In some cases, especially with medium or smaller faces sometimes the model does not see the face or blurs it only partially.
 The WIDER faces based testset is more difficult for the designed model, because the resolution of the images is way bigger, sometimes also over 1000x1000, and most of them are not square, so what happens when the images are padded is that the size of the faces gets really small and the models struggle to detect them. To conclude, performance for the faces that remain in large/medium size is still good, while it is drastically reduced with smaller dimensions. For these reasons, images are not displayed because the situations with good results are the same as the FDDB testset.
