@@ -37,16 +37,21 @@ The structure of the dataset is the following:
 ┃ ┃ ┣ 02400.jpg
 ```
 
-There are 2 verison of the dataset.
-Both are composed of images extracted randomly and then selected by hand from the dataset [VGGFace2](https://www.kaggle.com/datasets/hearfool/vggface2) in the cropped version 256x256 found on Kaggle website, images from [FDDB](https://www.kaggle.com/datasets/cormacwc/fddb-dataset) dataset from Kaggle website(more or less 20%) and images from [CelebA-HQ](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256) in a 256x256 version(10-12%) from Kaggle website
+There are 2 verison of the dataset. Both are composed of images extracted randomly and then selected by hand from the dataset [VGGFace2](https://www.kaggle.com/datasets/hearfool/vggface2) in the cropped version 256x256 found on Kaggle website, images from [FDDB](https://www.kaggle.com/datasets/cormacwc/fddb-dataset) dataset from Kaggle website(more or less 20%) and images from [CelebA-HQ](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256) in a 256x256 version(10-12%) from Kaggle website.
 
 To produce the structure above the images have been divided into train and val folder and then with the help of a face detector blurring has been performed on them to generate train_blur and val_blur folders. Two different detectors have been used:
 - [BlazeFace-TFLite-Inference](https://github.com/ibaiGorordo/BlazeFace-TFLite-Inference)
 - [Mediapipe](https://mediapipe.readthedocs.io/en/latest/solutions/face_detection.html) official implementation
 
 Both implementation seem to perform weel but they still miss some faces, especially on images where the face is too big, when it is only half face or when there are multiple faces and some of them are small or low resolution.
-That said the mediapipe implementation has been chosen for the first dataset since it is an official implementation, even if the blocks of the architecture should be very similar between the two models. 
-After a close check to the results there were some missed faces, so the decision was to realize a second version of the datase, by running the blazeface detector over the blurred images from the mediapipe one, and then clean up the validation folder by hand to be sure that it is perfect since this impacts directly the metrics. Then all the folders have been padded with black padding to the input size of the model, 128x128, to avoid stretched images during training, since the file uses a resize function without padding.
+That said the mediapipe implementation has been chosen for the first dataset version since it is an official implementation.
+After taking a closer look to the results, there were some missed faces, so the decision was to realize a second version of the dataset, by running the blazeface detector over the blurred images from the mediapipe one, and then clean up the validation folder by hand to be sure that it is perfect since this impacts directly the metrics. Then all the folders have been padded with black padding to the input size of the model, 128x128, to avoid stretched images during training, since the file uses a resize function without padding. The second version contains a different blurring function, while the first one had a fixed kernel of 41 for the gaussian blur, this lase has a variable kernel based on the dimensions of the detected bounding box. This allows to avoid the problem noticeable in the following image, where bigger faces gets a lower level of anonymization.
+
+<p align="center">
+  <img src="doc/dataset_blur.png" width="40%" />
+  <br>
+  <b>Figure 1:</b>Dataset light blur problem on bigger faces
+</p>
 
 The versions of the datasets are available at the following links:
 - [dataset1](https://drive.google.com/drive/folders/1nc2RxoH2I2nXbIiicZD8KBU1zQQUWBJD?usp=sharing), [dataset1 zip](https://drive.google.com/file/d/1x5ATVlCTmYPZ24dOTgq-wUrLTqsGatCW/view?usp=drive_link)
@@ -57,8 +62,7 @@ For further improvements a recommendation is to use a labeled dataset where ther
 [Back to top](#table-of-contents)
 
 # Model architecture
-SCELTA TENSORFLOW
-
+To realize this projec the choice was to use Tensorflow, which provides good compatibility and support for quantization and deployment.
 The model architecture is based on a simple unet structure, which is a convolutial network with a downsample(encoder) and an upsample(decoder) path. This type of path is common in image reconstruction or detection tasks.
 In specific the architecture of the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
 <div align="center">
@@ -70,7 +74,7 @@ In specific the architecture of the model in analysis is a 3 layer encoder and 3
 
 The resulting models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. All the models have 3 layers as said before, the different stand in the size of the filters, which is halv in the studentv1 model, so 16-32-64 and 128 as bottlenck, while for studentv2 is 24-48-96-192.
 ```
-Conv Block (`conv_block`) = 2× 2DConv + BatchNorm + ReLU
+Conv Block (`conv_block`) = 2× 2DConv(3x3) + BatchNorm + ReLU
 
 **Architecture:**
 Input
