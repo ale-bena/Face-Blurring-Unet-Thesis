@@ -65,12 +65,11 @@ For further improvements a recommendation is to use a labeled dataset where ther
 To realize this projec the choice was to use Tensorflow, which provides good compatibility and support for quantization and deployment.
 The model architecture is based on a simple unet structure, which is a convolutial network with a downsample(encoder) and an upsample(decoder) path. This type of path is common in image reconstruction or detection tasks.
 In specific the architecture of the model in analysis is a 3 layer encoder and 3 layer decoder architecture wirh the following filters: 32-64-128 for encoder, and opposite for the decoder. The bottleneck(deppest point of the network) has 256 filters.
-<div align="center">
-  <figure>
-    <img src="doc/U-Net.PNG" alt="Image Description" width="50%">
-    <figcaption><b>Figure 2:</b> U-Net architecture</figcaption>
-  </figure>
-</div>
+<p align="center">
+  <img src="doc/U-Net.PNG" width="50%" />
+  <br>
+  <b>Figure 2:</b>U-Net architecture
+</p>
 
 The resulting models are of two types: teacher and student, since to try reducing the size even more, knowledge distillation was applied. All the models have 3 layers as said before, the different stand in the size of the filters, which is halv in the studentv1 model, so 16-32-64 and 128 as bottlenck, while for studentv2 is 24-48-96-192.
 ```
@@ -111,20 +110,13 @@ To perform retraining there is the need to pull this directory and download the 
 KNOWLEDGE DISTILLATION TRAINING
 Knowledge distillation is an effective technique in machine learning for adapting or compressing models with identical input and output, even if they have a slightly different structure. It is based on the presence of a teacher and a student model. The last one learns to replicate the teacher's output
 For the students model training the training file is train_student.py and it contains a class called Distiller that defines the metrics used based on the knowledge distillation technique:
-
-<div align="left">
-  <figure>
-    <img src="doc/KD_losses.png" alt="Image Description" width="25%">
-    <figcaption><b>Figure 2:</b> KD loss functions</figcaption>
-  </figure>
-</div>
+<p align="center">
+  <img src="doc/KD_losses.png" width="30%" />
+  <br>
+  <b>Figure 2:</b>KD loss functions
+</p>
 
 The teacher is set as non-trainable and the loss functions for training and validation are still based on MSE, but the total loss is a weighted combination between the loss of the student and the loss between the student and the teacher outputs. The parameter alpha can be tuned to increase or decrease the impact of the teacher. In this case alpha is set to 0,7, so the teacher impact is 0,3.
-
-
-
-To try only the inference part, the .tflite models in the different models folders in this repository can be used. Instructions are inside the following script: 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing) (link needs to be changed)
 
 QUANTIZATION
 Quantization is a model compression technique that aims to reduce the memory footprint and computational requirements of neural networks. It operates by representing the model parameters and activations with a lower numerical precision, typically passing from 32 bit floating point (FP32) to 16 bit or 8 bit integer (INT8) formats. This reduction comes at the cost of potential degradation in model accuracy depending on the quantization method and the model's sensitivity to these changes. 
@@ -132,6 +124,7 @@ For this project post training quantization is used, since the aim of the projec
 
 
 RESULTING MODELS
+
 | Model        | Type             | Size (KB) |
 |--------------|-----------------|-----------|
 | **Teacher**  | .keras           | 22,819    |
@@ -145,17 +138,27 @@ RESULTING MODELS
 |              | .tflite (int8)  | 1,106     |
 
 
+To try only the inference part, the .tflite models in the different models folders in this repository can be used. Instructions are inside the following script: 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1H3IJpvMuoR8DHG3eG32bgsEw3pUlPiyM?usp=sharing) (link needs to be changed)
 
 [Back to top](#table-of-contents)
 
 # Results
 In this section training graphs of the loss will be shown. The loss used is MSE and the other metrics are MAE, SSIM and PSNR. The 2 lines indicates the the training phase(BLUE) and the validation phase(RED).
-<div align="center">
-  <figure>
-    <img src="doc/tlz.png" alt="Descrizione immagine" width="40%">
-    <figcaption><b>Figure 2:</b> Teahcer loss chart</figcaption>
-  </figure>
-</div>
+<p align="center">
+  <img src="doc/tloss.png" width="40%" />
+  <img src="doc/tloss.png" width="40%" />
+  <br>
+  <b>Figure 1:</b>Teacher loss chart and learning rate decay chart
+</p>
+
+<p align="center">
+  <img src="doc/sv1loss.png" width="40%" />
+  <img src="doc/sv2loss.png" width="40%" />
+  <br>
+  <b>Figure 1:</b>original|teacher|studentv2|studentv1, 1-4 on the left, 5-8 on the right
+</p>
+ 
 
 | Type  |      MSE |  val_MSE |     MAE | val_MAE |   SSIM | val_SSIM |   PSNR | val_PSNR |
 |-------|---------:|---------:|--------:|--------:|-------:|---------:|-------:|---------:|
