@@ -148,7 +148,7 @@ To try only the inference part, the models in keras and tflite format are availa
 In this section training graphs of the loss will be shown. The loss used is MSE and the other metrics are MAE, SSIM and PSNR. The 2 lines indicates the the training phase(BLUE) and the validation phase(RED).
 <p align="center">
   <img src="doc/tloss.png" width="40%" />
-  <img src="doc/tloss.png" width="40%" />
+  <img src="doc/teacher_lrdecay.png" width="40%" />
   <br>
   <b>Figure 1:</b>Teacher loss chart and learning rate decay chart
 </p>
